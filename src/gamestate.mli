@@ -12,7 +12,7 @@ val step : t -> t
 
 val can_place_building : building_type_id -> coordinates -> t -> bool
 
-val place_building : building_type_id -> coordinates  -> t -> t
+val place_building : building_type_id -> coordinates -> t -> t
 
 val set_workers : building_id -> t -> t
 
@@ -25,3 +25,5 @@ val get_buildings : t -> building
 val get_building_at : coordinates -> t -> building option
 
 val get_resource_at : t -> tile_type
+
+val get_bounds : t -> (int*int)
