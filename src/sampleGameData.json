@@ -1,0 +1,58 @@
+{
+  "resource": [
+    "Food",
+    "TiNberwood"
+  ],
+  "residence_buildings": [
+    {
+      "type": "Tent",
+      "max_residents": "5",
+      "max_workers": "0",
+      "placement_cost": [
+        {
+          "resource": "TiNberwood",
+          "cost": 10
+        }
+      ],
+      "active_generation": [],
+      "storage": []
+    },
+    {
+      "type": "Sawmill",
+      "max_residents": "0",
+      "max_workers": "5",
+      "placement_cost": [
+        {
+          "resource": "TiNberwood",
+          "cost": 10
+        }
+      ],
+      "active_generation": [
+        {
+          "input": 2,
+          "output": 10,
+          "resource_outputted": "Food"
+        }
+      ],
+      "storage": []
+    },
+    {
+      "type": "Silo",
+      "max_residents": "0",
+      "max_workers": "0",
+      "placement_cost": [
+        {
+          "resource": "TiNberwood",
+          "cost": 10
+        }
+      ],
+      "active_generation": [],
+      "storage": [
+        {
+          "resource": "Food",
+          "capacity": 50
+        }
+      ]
+    }
+  ]
+}

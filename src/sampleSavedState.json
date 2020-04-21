@@ -1,0 +1,43 @@
+{
+  "turn_id": 0,
+  "resources": [
+    {
+      "name": "Food",
+      "amount": 2
+    },
+    {
+      "name": "TiNberwood",
+      "amount": 2
+    }
+  ],
+  "buildings": [
+    {
+      "type": "Tent",
+      "x-coordinate": 5,
+      "y-coordinate": 6,
+      "workers": [],
+      "residents": ["John Doe"]
+    },
+    {
+      "type": "Sawmill",
+      "x-coordinate": 3,
+      "y-coordinate": 2,
+      "workers": ["John Doe"],
+      "residents": []
+    }
+  ],
+  "tiles": [
+    {
+      "type": "water",
+      "coordinates": [
+        [1,2], [3,4]
+      ]
+    },
+    {
+      "type": "timber",
+      "coordinates": [
+        [5, 6], [13, 8]
+      ]
+    }
+  ]
+}
