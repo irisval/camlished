@@ -12,14 +12,14 @@
   ],
   "buildings": [
     {
-      "type": "Tent",
+      "building_type": "Tent",
       "x-coordinate": 5,
       "y-coordinate": 6,
       "workers": [],
       "residents": ["John Doe"]
     },
     {
-      "type": "Sawmill",
+      "building_type": "Sawmill",
       "x-coordinate": 3,
       "y-coordinate": 2,
       "workers": ["John Doe"],
@@ -28,13 +28,13 @@
   ],
   "tiles": [
     {
-      "type": "water",
+      "tile_type": "water",
       "coordinates": [
         [1,2], [3,4]
       ]
     },
     {
-      "type": "timber",
+      "tile_type": "timber",
       "coordinates": [
         [5, 6], [13, 8]
       ]

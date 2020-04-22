@@ -5,7 +5,7 @@
   ],
   "residence_buildings": [
     {
-      "type": "Tent",
+      "name": "Tent",
       "max_residents": "5",
       "max_workers": "0",
       "placement_cost": [
@@ -18,7 +18,7 @@
       "storage": []
     },
     {
-      "type": "Sawmill",
+      "name": "Sawmill",
       "max_residents": "0",
       "max_workers": "5",
       "placement_cost": [
@@ -37,7 +37,7 @@
       "storage": []
     },
     {
-      "type": "Silo",
+      "name": "Silo",
       "max_residents": "0",
       "max_workers": "0",
       "placement_cost": [

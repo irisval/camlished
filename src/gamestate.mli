@@ -1,9 +1,12 @@
+open GameData
+
 type coordinates = (int*int)
-type building_type_id
-type building_id
-type building_type
+type resource
+
 type building
-type tile_type = Grass | Rock
+type tile_type = Diamonds | Rock
+type tile
+type game_state
 
 (** The type representing a game state *)
 type t
@@ -12,22 +15,21 @@ val init_state : t
 
 val step : t -> t
 
-val can_place_building : building_type_id -> coordinates -> t -> bool
+val can_place_building : GameData.building_type -> coordinates -> t -> bool
 
-val place_building : building_type_id -> coordinates -> int -> t -> t
+val place_building : GameData.building_type -> coordinates -> int -> t -> t
 
-val set_workers : building_id -> int -> t -> t
+val set_workers : coordinates -> int -> t -> t
 
 val alive : t -> bool
-
-val get_resources : t -> (string*int) list
-
-val get_building_types : t -> (building_type_id*building_type) list
 
 val get_buildings : t -> building list
 
 val get_building_at : coordinates -> t -> building option
 
-val get_resource_at : coordinates -> t -> tile_type
+(** [get_user_resources st] is the list of resources the user has *)
+val get_user_resources : t -> resource list
 
-val get_bounds : t -> (int*int)
+val get_tile_at : coordinates -> t -> tile_type
+
+val get_bounds : t -> coordinates
