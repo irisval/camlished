@@ -1,8 +1,8 @@
-type coordinates
+type coordinates = (int*int)
 type building_type_id
 type building_id
 type building
-type tile_type
+type tile_type = Grass | Rock
 
 type t
 
@@ -24,6 +24,6 @@ val get_buildings : t -> building
 
 val get_building_at : coordinates -> t -> building option
 
-val get_resource_at : t -> tile_type
+val get_resource_at : coordinates -> t -> tile_type
 
 val get_bounds : t -> (int*int)
