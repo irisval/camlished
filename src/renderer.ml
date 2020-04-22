@@ -22,7 +22,7 @@ let char_at pos gs =
   match Gamestate.get_building_at pos gs
   with
   | Some b -> char_of_building b
-  | None -> char_of_tile (Gamestate.get_resource_at pos gs) 
+  | None -> char_of_tile (Gamestate.get_tile_at pos gs) 
 
 
 (**[text_map input gs] gives the text representation of the map in [gs] 

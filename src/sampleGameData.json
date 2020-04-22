@@ -1,9 +1,9 @@
 {
-  "resource": [
+  "resource_types": [
     "Food",
     "TiNberwood"
   ],
-  "residence_buildings": [
+  "building_properties": [
     {
       "name": "Tent",
       "max_residents": "5",

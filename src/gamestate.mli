@@ -1,10 +1,9 @@
-open GameData
-
 type coordinates = (int*int)
 type resource
 
-type building
-type tile_type = Diamonds | Rock
+type building_type
+type building_option = Some of building_type | None
+type tile_type = Diamonds | Rock | Grass
 type tile
 type game_state
 
@@ -22,6 +21,7 @@ val place_building : GameData.building_type -> coordinates -> int -> t -> t
 val set_workers : coordinates -> int -> t -> t
 
 val alive : t -> bool
+
 
 val get_buildings : t -> building list
 
