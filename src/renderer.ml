@@ -65,43 +65,39 @@ let rec first n s =
 
 let last n s = first n (List.rev s)
 
-let rec fill_to s n filler =
+let rec fill_to n filler s =
   if List.length s >= n then s
-  else fill_to (s@filler) n filler
+  else fill_to n filler (s@[filler])
 
 (**[insert_at s pos x] is [s] with [x] written into it starting at [pos].
     If [s] is shorter than [n] characters, spaces are added.*)
-(* TODO *)
 let insert_at s pos x = 
   let len = List.length s in
+  (first pos s |> fill_to pos ([]," "))
+  @ x
+  @ (last (len-pos |> max 0) s)
+
+(* let add_resources dist gs current =
+   let resources = Gamestate.get_resources in
+   let rec add_resources_aux o line r = 
+    match r with
+    | [] -> o
+    | h::k ->
+      insert_at (fill_to o line)
+   in
+   add_resources_aux current 0 resources  *)
 
 
-  (**[fill_to s n] is [s] with empty strings added to ensure [s] has at least [n]
-     elements.*)
-  (* TODO *)
-  (* let rec fill_to s n = if List.length s >= n then s else s@[] *)
-
-  (* let add_resources dist gs current =
-     let resources = Gamestate.get_resources in
-     let rec add_resources_aux o line r = 
-      match r with
-      | [] -> o
-      | h::k ->
-        insert_at (fill_to o line)
-     in
-     add_resources_aux current 0 resources  *)
-
-
-  let draw input gs = 
-    let output = 
-      text_map input gs 
-      (* |> add_resources 40 gs *)
-    in
-    erase Screen;
-    List.iter
-      (fun line -> List.iter
-          (fun (s,c) -> print_string s (c |> Char.escaped) )
-          line; print_newline ())
-      output
+let draw input gs = 
+  let output = 
+    text_map input gs 
+    (* |> add_resources 40 gs *)
+  in
+  erase Screen;
+  List.iter
+    (fun line -> List.iter
+        (fun (s,c) -> print_string s (c |> Char.escaped) )
+        line; print_newline ())
+    output
 
 let temp_input_state = ()
