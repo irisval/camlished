@@ -13,8 +13,8 @@ let char_of_building = function
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
 let char_of_tile = function
-  | Grass -> ([green], ' ')
-  | Rock -> ([green],'~')
+  | Grass -> ([on_green], ' ')
+  | Rock -> ([black;on_green],'#')
 
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
@@ -39,26 +39,28 @@ let text_map _ gs =
     in
     draw_row_aux [] 0;
   in
-  let rec draw_aux acc y = 
+  let rec draw_aux arr y = 
     let row = draw_row y in
-    let acc' = (row::acc) in
-    if(y+1 < height) then draw_aux acc' (y+1) else acc'
+    Array.set arr y row;
+    if(y+1 < height) then draw_aux arr (y+1) else arr
   in
-  draw_aux [] 0
+  let arr = Array.make height [] in
+  draw_aux arr 0
 
-
-(* TODO: does not support newline *)
-let string_to_list str = (Str.split (Str.regexp "*") str)
+let string_to_chars s =
+  let rec aux i acc = 
+    if( i < 0) then acc else aux (i-1) (s.[i] ::acc) in
+  aux (String.length s -1) []
 
 (**[resource_label (name,value)] gives the rendered label for a resource named
     [name] with quantity [value].*)
 let resource_label (name,value) = 
   (name ^ ": " ^ string_of_int value)
-  |> string_to_list
+  |> string_to_chars
   |> List.map (fun e -> ([magenta],e))
 
 let rec first n s = 
-  if n = 0 then s else
+  if n = 0 then [] else
     match s with
     | [] -> s
     | h::k -> h :: (first (n-1) k)
@@ -69,35 +71,42 @@ let rec fill_to n filler s =
   if List.length s >= n then s
   else fill_to n filler (s@[filler])
 
-(**[insert_at s pos x] is [s] with [x] written into it starting at [pos].
-    If [s] is shorter than [n] characters, spaces are added.*)
-let insert_at s pos x = 
+(**[insert_at pos x s] is [s] with [x] written into it starting at [pos].
+    If [s] is shorter than [pos] characters, spaces are added.*)
+let insert_at pos x s = 
   let len = List.length s in
-  (first pos s |> fill_to pos ([]," "))
+  (first pos s |> fill_to pos ([],' '))
   @ x
   @ (last (len-pos |> max 0) s)
 
-(* let add_resources dist gs current =
-   let resources = Gamestate.get_resources in
-   let rec add_resources_aux o line r = 
+let add_resources x y gs arr =
+  let rec add_resources_aux (line:int) r = 
     match r with
-    | [] -> o
+    | [] -> arr
     | h::k ->
-      insert_at (fill_to o line)
-   in
-   add_resources_aux current 0 resources  *)
+      let label = resource_label h in
+      let linetxt' =
+        Array.get arr line
+        |> insert_at x label
+      in
+      Array.set arr line linetxt';
+      let line' = line + 2 in
+      add_resources_aux line' k 
+  in
+  (* TODO: guarantee arr has sufficient lines *)
+  add_resources_aux y (Gamestate.get_resources gs) 
 
 
 let draw input gs = 
   let output = 
     text_map input gs 
-    (* |> add_resources 40 gs *)
+    |> add_resources 25 1 gs
   in
   erase Screen;
   List.iter
     (fun line -> List.iter
         (fun (s,c) -> print_string s (c |> Char.escaped) )
         line; print_newline ())
-    output
+    (Array.to_list output)
 
 let temp_input_state = ()
