@@ -10,6 +10,12 @@ type resource_type = string
 (** The type of buildings *)
 type building_type = string
 
+(** The width and height of the map *)
+type bounds = int * int
+
+(** The type of tiles *)
+type tile_type = Diamonds | Rock | Grass
+
 (** The placement cost *)
 type placement_cost = {
   resource: resource_type;

@@ -19,7 +19,7 @@ let char_of_tile = function
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
 let char_at pos gs =
-  match Gamestate.get_building_at pos gs
+  match Gamestate.get_building_type_at pos gs
   with
   | Some b -> char_of_building b
   | None -> char_of_tile (Gamestate.get_tile_at pos gs) 
@@ -66,14 +66,14 @@ let insert_at s pos x = s
 let rec fill_to s n = if List.length s >= n then s else s@[]
 
 (* let add_resources dist gs current =
-  let resources = Gamestate.get_resources in
-  let rec add_resources_aux o line r = 
+   let resources = Gamestate.get_resources in
+   let rec add_resources_aux o line r = 
     match r with
     | [] -> o
     | h::k ->
       insert_at (fill_to o line)
-  in
-  add_resources_aux current 0 resources  *)
+   in
+   add_resources_aux current 0 resources  *)
 
 
 let draw input gs = 

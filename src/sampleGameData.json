@@ -3,6 +3,8 @@
     "Food",
     "TiNberwood"
   ],
+  "width": 50,
+  "height": 50,
   "building_properties": [
     {
       "name": "Tent",

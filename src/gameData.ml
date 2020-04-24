@@ -1,5 +1,8 @@
 type resource_type = string
 type building_type = string
+type bounds = int * int
+
+type tile_type = Diamonds | Rock | Grass
 
 type placement_cost = {
   resource: resource_type;

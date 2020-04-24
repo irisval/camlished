@@ -1,12 +1,13 @@
 open GameData
 
+exception OccupiedTile
+exception IllegalWorkerAssignment
+
 type resource = {
   id: resource_type;
   amount: int;
 }
 
-
-type tile_type = Diamonds | Rock | Grass
 type person = string
 type coordinates = int * int
 
@@ -16,8 +17,6 @@ type building = {
   workers: person list;
   residents: person list;
 }
-
-type building_option = Some of building | None
 
 type tile = {
   name: tile_type;
@@ -40,49 +39,109 @@ let init_state = {
   tiles = [];
 }
 
-let rec check_coor_tiles x y = function
-  | h::t -> if (fst h.coordinates) = x && (snd h.coordinates) = y then h.name 
-            else check_coor_tiles x y t
-  | [] -> Grass
+let step st = {turn_id = st.turn_id + 1; resources = st.resources; buildings = st.buildings; tiles = st.tiles}
 
-let rec check_coor_building x y (building_lst:building list) = 
-  match building_lst with 
-    | h::t -> if (fst h.coordinates) = x && (snd h.coordinates) = y then (Some h.building_type)
-              else check_coor_building x y t
+let get_user_resources st =
+  st.resources
+
+let get_buildings st =
+  st.buildings
+
+let get_building_at coor st : (building option) = 
+  List.find_opt (fun (b:building) -> b.coordinates = coor) st.buildings
+
+let get_building_type_at coor st = 
+  match get_building_at coor st with 
+  | Some b -> Some b.building_type
+  | None -> None
+
+let get_tile_at coor st = 
+  let rec find_coor x y tiles : (tile_type option) =
+    match tiles with 
+    | {name=n; coordinates=c;}::t -> 
+      if (fst c) = x && (snd c) = y then Some n else find_coor x y t
     | [] -> None
 
-
-let get_tile_at (coor:coordinates) state =
-  check_coor_tiles (fst coor) (snd coor) state.tiles
+  in find_coor (fst coor) (snd coor) st.tiles
 
 
-let step state = failwith "todo"
+let is_empty coor st =
+  match get_building_at coor st with 
+  | Some _ -> false 
+  | None -> match get_tile_at coor st with
+    | Some _ -> false 
+    | None -> true
 
-let can_place_building building_type coor state = 
-  failwith "todo"
+(** [make_building building_type coor] returns a building of type
+    [building_type] at [coor] *)
+let make_building building_type coor = 
+  {building_type = building_type; coordinates = coor; workers = []; residents = []} 
 
-let place_building building_type coor worker_amt state = 
-  failwith "todo"
+let place_building building_type coor st = 
+  if is_empty coor st |> not then raise OccupiedTile
+  else let b = make_building building_type coor in 
+    {turn_id = st.turn_id;
+     resources = st.resources;
+     buildings = b::st.buildings;
+     tiles = st.tiles }
 
-let set_workers coor amt state = 
-  failwith "todo"
+let population st =
+  List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
 
-let alive state = 
-  failwith "todo"
+(** [list_diff l1 l2] is [l1] removing the elements of [l2] *)
+let list_diff l1 l2 =
+  List.filter (fun x -> not (List.mem x l2)) l1
 
-let get_buildings state =
-  failwith "todo"
+let all_residents st =
+  List.fold_left (fun acc b -> acc @ b.residents) [] st.buildings
 
-let get_building_at coor state =
-  let b = check_coor_building (fst coor) (snd coor) state.buildings in 
-  match b with 
-  | Some building -> building 
-  | None -> 
+let assigned_workers st =
+  List.fold_left (fun acc b -> acc @ b.workers) [] st.buildings
 
-let get_user_resources state =
-  failwith "todo"
+let unassigned_workers st =
+  list_diff (all_residents st) (assigned_workers st)
+
+(** [add_workers acc amt workers] adds [amt] from [workers] to [acc] *)
+let rec add_workers acc amt workers =
+  if amt = 0 then acc
+  else match workers with
+    | [] -> raise IllegalWorkerAssignment
+    | h::t -> add_workers (h::acc) (amt - 1) t
+
+let assign_workers coor amt dt st = 
+  match get_building_at coor st with
+  | Some b ->
+    let unassigned = unassigned_workers st in
+    if (List.length b.workers) < (max_workers b.building_type dt)
+    && amt <= List.length unassigned then
+      let updated_workers = add_workers [] amt unassigned in
+      let b' = {b with workers = updated_workers} in
+      {st with buildings =
+                 b'::(List.filter (fun x -> x <> b) st.buildings)}
+    else
+      raise IllegalWorkerAssignment
+  | None -> raise IllegalWorkerAssignment
+
+let rec remaining_workers new_len acc (worker_lst: person list) : (person list) = 
+  match worker_lst with 
+  | h::t -> if List.length acc = new_len then acc
+    else remaining_workers new_len (h::acc) t
+  | [] -> acc
 
 
+let unassign_workers coor amt st=
+  if amt <= 0 then st
+  else
+    match get_building_at coor st with
+    | Some b -> let num_workers = List.length b.workers in 
+      let new_num_workers = (if amt > num_workers then num_workers else num_workers - amt) in
+      let workers' = remaining_workers new_num_workers [] b.workers in 
+      let b' = {b with workers = workers'} in
+      {st with buildings =
+                 b'::(List.filter (fun x -> x <> b) st.buildings)}
+    | None -> raise IllegalWorkerAssignment
 
-let get_bounds state =
-  failwith "todo"
+let alive st = 
+  (population st = 0) |> not
+
+(* let get_bounds = GameData.bounds *)
