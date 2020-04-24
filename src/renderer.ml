@@ -52,12 +52,15 @@ let string_to_chars s =
     if( i < 0) then acc else aux (i-1) (s.[i] ::acc) in
   aux (String.length s -1) []
 
+let style_string (l: style list)(s:string) = 
+  string_to_chars s |>
+  List.map (fun e -> (l,e))
+
 (**[resource_label (name,value)] gives the rendered label for a resource named
     [name] with quantity [value].*)
 let resource_label (name,value) = 
   (name ^ ": " ^ string_of_int value)
-  |> string_to_chars
-  |> List.map (fun e -> ([magenta],e))
+  |> style_string [magenta] 
 
 let rec first n s = 
   if n = 0 then [] else
@@ -71,15 +74,25 @@ let rec fill_to n filler s =
   if List.length s >= n then s
   else fill_to n filler (s@[filler])
 
+let extend n filler arr = 
+  let l = Array.length arr in
+  if l >= n then arr
+  else Array.append arr (Array.make (n-l) filler)
+
+
 (**[insert_at pos x s] is [s] with [x] written into it starting at [pos].
-    If [s] is shorter than [pos] characters, spaces are added.*)
+    If [s] is shorter than [pos] characters, spaces are added.
+    If [s] is longer than [pos] characters, characters after [pos] are
+    overwritten up to the length of [x].*)
 let insert_at pos x s = 
   let len = List.length s in
   (first pos s |> fill_to pos ([],' '))
   @ x
-  @ (last (len-pos |> max 0) s)
+  @ (last (len-pos-(List.length x) |> max 0) s)
 
 let add_resources x y gs arr =
+  let resources = (Gamestate.get_resources gs) in
+  let arr = extend ((List.length resources * 2) + y) [] arr in
   let rec add_resources_aux (line:int) r = 
     match r with
     | [] -> arr
@@ -93,16 +106,29 @@ let add_resources x y gs arr =
       let line' = line + 2 in
       add_resources_aux line' k 
   in
-  (* TODO: guarantee arr has sufficient lines *)
-  add_resources_aux y (Gamestate.get_resources gs) 
+  add_resources_aux y resources
 
+let controls_text = "Press any key to step."
+
+let add_message y msg arr = 
+  let arr = extend (y+1) [] arr in
+  let linetxt' =
+    Array.get arr y
+    |> insert_at 0 (msg |> style_string []) in
+  Array.set arr y linetxt';
+  arr
+
+let hide_cursor () = printf [] "\027[?25l%!"
 
 let draw input gs = 
   let output = 
     text_map input gs 
     |> add_resources 25 1 gs
+    |> add_message 15 controls_text
   in
   erase Screen;
+  hide_cursor ();
+  set_cursor 1 1;
   List.iter
     (fun line -> List.iter
         (fun (s,c) -> print_string s (c |> Char.escaped) )
