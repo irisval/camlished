@@ -1,8 +1,10 @@
 open GameData
+open Yojson.Basic.Util
 
 exception OccupiedTile
 exception IllegalWorkerAssignment
 
+(* define types  *)
 type resource = {
   id: resource_type;
   amount: int;
@@ -39,6 +41,43 @@ let init_state = {
   tiles = [];
 }
 
+(* read from json *)
+let json_turn_id j =  j |> member "turn id" |> to_string;
+
+let json_resource j = {
+  id = j |> member "name" |> to_string;
+  amount = j |> member "amount" |> to_string;
+}
+
+let json_building j = {
+  building_type = j |> member "building type" |> to_string;
+  coordinates = (j |> member "x coordinate" |> to_int, j |> member "y coordinate" |> to_int);
+  workers = j |> member "workers" |> to_list;
+  residents = j |> member "workers" |> to_list;
+}
+
+let coor_json (xy_lst:int list) = (List.hd xy_lst, List.nth xy_lst 1)
+
+let json_tile j tile_type coor_lst : (tile list)=
+  List.fold_left 
+    (fun acc coor -> {name=tile_type; coordinates=coor_json coor}::acc) [] coor_lst
+
+
+let json_tile_type j : (tile list) = 
+  List.fold_left (fun acc tile_j -> 
+      (json_tile (j |> member "tile type" |> to_string) (j |> member "coordinates" |> to_list)) @ acc) [] j;
+
+  let user_data j = {
+    turn_id = j |> json_turn_id;
+    resources = j |> member "resources" |> to_list |> List.map json_resource;
+    buildings = j |> member "buildings" |> to_list |> List.map json_building;
+    tiles = j |> member "tiles" |> to_list |> json_tile_type
+  }
+
+let from_json j = try user_data j 
+  with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
+
+(* gamestate methods *)
 let step st = {turn_id = st.turn_id + 1; resources = st.resources; buildings = st.buildings; tiles = st.tiles}
 
 let get_user_resources st =

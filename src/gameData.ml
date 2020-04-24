@@ -1,3 +1,4 @@
+(* define types  *)
 type resource_type = string
 type building_type = string
 type bounds = int * int
@@ -27,7 +28,10 @@ type t = {
   resource_types: resource_type list;
   building_properties: building_properties list;
 }
+(* read from json *)
 
+
+(* gamestate methods *)
 (** [properties b dt] are the building properties for [b] in [dt] *)
 let properties b dt : building_properties =
   List.find (fun bp -> bp.name = b) dt

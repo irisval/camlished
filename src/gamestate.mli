@@ -22,6 +22,11 @@ exception OccupiedTile
 (** Raised in an attempt to assign a worker to a nonexistent building. *)
 exception IllegalWorkerAssignment 
 
+
+(** [from_json j] is the user data game state that [j] represents.
+    Requires: [j] is a valid JSON adventure representation. *)
+val from_json : Yojson.Basic.t -> t
+
 (* [init_state] gives the initial state of the game when the turn is 0. *)
 val init_state : t
 

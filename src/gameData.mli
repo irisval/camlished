@@ -22,6 +22,10 @@ type placement_cost = {
   cost: int;
 }
 
+(** [from_json j] is the user data game state that [j] represents.
+    Requires: [j] is a valid JSON adventure representation. *)
+val from_json : Yojson.Basic.t -> t
+
 (** The extra storage that a building can provide *)
 type storage = {
   resource: resource_type;

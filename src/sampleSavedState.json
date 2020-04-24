@@ -1,5 +1,5 @@
 {
-  "turn_id": 0,
+  "turn id": 0,
   "resources": [
     {
       "name": "Food",
@@ -12,18 +12,18 @@
   ],
   "buildings": [
     {
-      "building_type": "Tent",
-      "x-coordinate": 5,
-      "y-coordinate": 6,
+      "building type": "Tent",
+      "x coordinate": 5,
+      "y coordinate": 6,
       "workers": [],
       "residents": [
         "John Doe"
       ]
     },
     {
-      "building_type": "Sawmill",
-      "x-coordinate": 3,
-      "y-coordinate": 2,
+      "building type": "Sawmill",
+      "x coordinate": 3,
+      "y coordinate": 2,
       "workers": [
         "John Doe"
       ],
