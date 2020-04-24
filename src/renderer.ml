@@ -120,6 +120,16 @@ let add_message y msg arr =
 
 let hide_cursor () = printf [] "\027[?25l%!"
 
+
+(**[print_2d o] prints [o] to the console with each element of [o] as a
+   separate line.*)
+let print_2d o =
+  List.iter
+    (fun line -> List.iter
+        (fun (s,c) -> print_string s (c |> Char.escaped) )
+        line; print_newline ())
+    (Array.to_list o)
+
 let draw input gs = 
   let output = 
     text_map input gs 
@@ -129,10 +139,6 @@ let draw input gs =
   erase Screen;
   hide_cursor ();
   set_cursor 1 1;
-  List.iter
-    (fun line -> List.iter
-        (fun (s,c) -> print_string s (c |> Char.escaped) )
-        line; print_newline ())
-    (Array.to_list output)
+  print_2d output
 
 let temp_input_state = ()
