@@ -3,6 +3,7 @@ open Yojson.Basic.Util
 
 exception OccupiedTile
 exception IllegalWorkerAssignment
+exception IllegalResourceCollection
 
 (* define types  *)
 type resource = {
@@ -83,7 +84,7 @@ let user_data j = {
   tiles = j |> member "tiles" |> to_list |> json_tile_type;
   game_data =
     try 
-      "sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+      "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
     with
     | Yojson.Json_error _ -> failwith "can't find file"
 
@@ -105,6 +106,12 @@ let get_user_resources st =
 let get_buildings st =
   st.buildings
 
+let get_tiles st =
+  st.tiles
+
+let get_game_data st =
+  st.game_data
+
 let get_building_at coor st : (building option) = 
   List.find_opt (fun (b:building) -> b.coordinates = coor) st.buildings
 
@@ -121,7 +128,6 @@ let get_tile_at coor st =
     | [] -> None
 
   in find_coor (fst coor) (snd coor) st.tiles
-
 
 let is_empty coor st =
   match get_building_at coor st with 
@@ -143,6 +149,11 @@ let place_building building_type coor st =
      buildings = b::st.buildings;
      tiles = st.tiles;
      game_data = st.game_data}
+
+(* let gather_resource coor st = 
+   match get_building_type_at coor st with 
+   | Some b -> 
+   | None -> raise IllegalResourceCollection *)
 
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
@@ -200,7 +211,14 @@ let unassign_workers coor amt st =
                  b'::(List.filter (fun x -> x <> b) st.buildings)}
     | None -> raise IllegalWorkerAssignment
 
-let alive st = 
-  (population st = 0) |> not
+let alive st = (population st = 0) |> not
 
 let get_bounds st = GameData.get_bounds st.game_data
+
+let get_test_building = 
+  {building_type= "Tent"; coordinates=(5,6);workers=[];residents=["John Doe"]}
+
+let get_test_tile = GameData.Water
+
+let get_test_placed_building = 
+  {building_type= "Silo"; coordinates=(7,8);workers=[];residents=[]}

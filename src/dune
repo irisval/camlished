@@ -1,9 +1,9 @@
-(executable
-  (name main)
-  (libraries ANSITerminal str
-  yojson
-  ))
-  
+(executables
+  (names main stateTest)
+  (libraries ANSITerminal str yojson oUnit)
+)
+
+
 (rule
  (alias runtest)
  (action
