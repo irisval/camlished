@@ -23,12 +23,11 @@ exception OccupiedTile
 exception IllegalWorkerAssignment 
 
 
-(** [from_json j] is the user data game state that [j] represents.
-    Requires: [j] is a valid JSON adventure representation. *)
+(** [from_json j] is the user data that [j] represents.
+    Requires: [j] is a valid JSON game state representation. *)
 val from_json : Yojson.Basic.t -> t
 
-(* [init_state] gives the initial state of the game when the turn is 0. *)
-val init_state : t
+
 
 (** [step st] steps one turn through the game state [st]. 
     TODO: incorporate game changes in between steps *)
@@ -64,24 +63,24 @@ val place_building : GameData.building_type -> coordinates  -> t -> t
 val population : t -> int
 
 (** [all_residents st] is the list of all people who live in [st] *)
-val all_residents : t -> int
+val all_residents : t -> person list
 
 (** [assigned_workers st] is the list of all people with job who live in [st] *)
-val assigned_workers : t -> int
+val assigned_workers : t -> person list
 
 (** [unassigned_workers st] is the list of people who don't have job in [st] *)
 val unassigned_workers : t -> person list
 
-(** [assign_workers coor amt dt st] assigns [amt] workers to the building at
+(** [assign_workers coor amt st] assigns [amt] workers to the building at
     [coor] if possible, else raises IllegalWorkerAssignment. *)
-val assign_workers : coordinates -> int -> GameData.t -> t -> t
+val assign_workers : coordinates -> int -> t -> t
 
-(** [unassign_workers coor amt dt st] unassigns [amt] workers from building at
+(** [unassign_workers coor amt st] unassigns [amt] workers from building at
     [coor] if possible, else raises IllegalWorkerAssignment. *)
-val unassign_workers : coordinates -> int -> GameData.t -> t -> t
+val unassign_workers : coordinates -> int -> t -> t
 
 (** [alive st] gives where the population of a society has died*)
 val alive : t -> bool
 
 (** [get_bounds] returns the bounds of the game*)
-val get_bounds :  GameData.bounds
+val get_bounds : t -> GameData.bounds

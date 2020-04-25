@@ -14,7 +14,7 @@ type building_type = string
 type bounds = int * int
 
 (** The type of tiles *)
-type tile_type = Diamonds | Rock | Grass
+type tile_type = Grass | Rock | Water | Trees
 
 (** The placement cost *)
 type placement_cost = {
@@ -22,8 +22,8 @@ type placement_cost = {
   cost: int;
 }
 
-(** [from_json j] is the user data game state that [j] represents.
-    Requires: [j] is a valid JSON adventure representation. *)
+(** [from_json j] is the user data game that [j] represents.
+    Requires: [j] is a valid JSON game data representation. *)
 val from_json : Yojson.Basic.t -> t
 
 (** The extra storage that a building can provide *)
@@ -41,6 +41,15 @@ type building_properties = {
   active_generation: unit;
   storages: storage list;
 }
+
+(** [tile_type_of_string s] is the tile variant representation of s *)
+val tile_type_of_string : string -> tile_type
+
+(** [building_types dt] is the list of building types in [dt] *)
+val building_types : t -> building_type list
+
+(** [resource_types dt] is the list of resource types in [d] *)
+val resource_types : t -> resource_type list
 
 (** [max_residents b dt] is the maximum number of residents
     that can live in building [b] in game data [dt] *)
@@ -60,5 +69,8 @@ val active_generation : building_type -> t -> unit
 (** [storage b dt] is the storage increase(s) that building [b]
     provides in game data [dt] *)
 val storage : building_type -> t -> storage list
+
+(** [get_bounds] returns the bounds of the game*)
+val get_bounds : t -> bounds
 
 (* val get_building_types : t -> (building_type_id*GameData.building_type) list *)

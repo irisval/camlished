@@ -30,55 +30,74 @@ type game_state = {
   resources: resource list;
   buildings: building list;
   tiles: tile list;
+  game_data: GameData.t;
 }
 
 type t = game_state
 
+(* 
+// Removed because reading from user file each time
 let init_state = {
   turn_id = 0;
   resources = [];
   buildings = [];
   tiles = [];
-}
+  game_data = 
+    try 
+      "gameData.mli" |> Yojson.Basic.from_file |> GameData.from_json
+    with
+    | Yojson.Json_error f -> failwith "can't find file"
+} *)
 
 (* read from json *)
-let json_turn_id j =  j |> member "turn id" |> to_string;
-
 let json_resource j = {
   id = j |> member "name" |> to_string;
-  amount = j |> member "amount" |> to_string;
+  amount = j |> member "amount" |> to_int;
 }
+
+let json_person j =
+  j |> to_string
 
 let json_building j = {
   building_type = j |> member "building type" |> to_string;
   coordinates = (j |> member "x coordinate" |> to_int, j |> member "y coordinate" |> to_int);
-  workers = j |> member "workers" |> to_list;
-  residents = j |> member "workers" |> to_list;
+  workers = j |> member "workers" |> to_list |> List.map json_person;
+  residents = j |> member "residents" |> to_list |> List.map json_person
 }
 
 let coor_json (xy_lst:int list) = (List.hd xy_lst, List.nth xy_lst 1)
 
-let json_tile j tile_type coor_lst : (tile list)=
+let json_tile tile_type coor_lst : (tile list) =
   List.fold_left 
     (fun acc coor -> {name=tile_type; coordinates=coor_json coor}::acc) [] coor_lst
 
-
 let json_tile_type j : (tile list) = 
-  List.fold_left (fun acc tile_j -> 
-      (json_tile (j |> member "tile type" |> to_string) (j |> member "coordinates" |> to_list)) @ acc) [] j;
+  let tt t : tile_type = (t |> member "tile type" |> to_string |> tile_type_of_string) in
+  let coor t = (t |> member "coordinates" |> convert_each (fun lst -> lst |> convert_each (fun x -> x |> to_int))) in 
+  List.fold_left (fun acc tile_j -> (json_tile (tt tile_j) (coor tile_j)) @ acc) [] j
 
-  let user_data j = {
-    turn_id = j |> json_turn_id;
-    resources = j |> member "resources" |> to_list |> List.map json_resource;
-    buildings = j |> member "buildings" |> to_list |> List.map json_building;
-    tiles = j |> member "tiles" |> to_list |> json_tile_type
-  }
+let user_data j = {
+  turn_id = j |> member "turn id" |> to_int;
+  resources = j |> member "resources" |> to_list |> List.map json_resource;
+  buildings = j |> member "buildings" |> to_list |> List.map json_building;
+  tiles = j |> member "tiles" |> to_list |> json_tile_type;
+  game_data =
+    try 
+      "sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+    with
+    | Yojson.Json_error _ -> failwith "can't find file"
+
+}
 
 let from_json j = try user_data j 
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
 
 (* gamestate methods *)
-let step st = {turn_id = st.turn_id + 1; resources = st.resources; buildings = st.buildings; tiles = st.tiles}
+let step st = {turn_id = st.turn_id + 1;
+               resources = st.resources;
+               buildings = st.buildings;
+               tiles = st.tiles;
+               game_data = st.game_data}
 
 let get_user_resources st =
   st.resources
@@ -122,7 +141,8 @@ let place_building building_type coor st =
     {turn_id = st.turn_id;
      resources = st.resources;
      buildings = b::st.buildings;
-     tiles = st.tiles }
+     tiles = st.tiles;
+     game_data = st.game_data}
 
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
@@ -147,11 +167,11 @@ let rec add_workers acc amt workers =
     | [] -> raise IllegalWorkerAssignment
     | h::t -> add_workers (h::acc) (amt - 1) t
 
-let assign_workers coor amt dt st = 
+let assign_workers coor amt st = 
   match get_building_at coor st with
   | Some b ->
     let unassigned = unassigned_workers st in
-    if (List.length b.workers) < (max_workers b.building_type dt)
+    if (List.length b.workers) < (max_workers b.building_type st.game_data)
     && amt <= List.length unassigned then
       let updated_workers = add_workers [] amt unassigned in
       let b' = {b with workers = updated_workers} in
@@ -168,7 +188,7 @@ let rec remaining_workers new_len acc (worker_lst: person list) : (person list) 
   | [] -> acc
 
 
-let unassign_workers coor amt st=
+let unassign_workers coor amt st =
   if amt <= 0 then st
   else
     match get_building_at coor st with
@@ -183,4 +203,4 @@ let unassign_workers coor amt st=
 let alive st = 
   (population st = 0) |> not
 
-(* let get_bounds = GameData.bounds *)
+let get_bounds st = GameData.get_bounds st.game_data

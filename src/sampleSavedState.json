@@ -32,7 +32,7 @@
   ],
   "tiles": [
     {
-      "tile_type": "water",
+      "tile type": "water",
       "coordinates": [
         [
           1,
@@ -45,7 +45,7 @@
       ]
     },
     {
-      "tile_type": "timber",
+      "tile type": "trees",
       "coordinates": [
         [
           5,

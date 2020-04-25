@@ -1,2 +1,14 @@
-(library
-  (name state))
+(executable
+  (name main)
+  (libraries ANSITerminal str
+  yojson
+  ))
+  
+(rule
+ (alias runtest)
+ (action
+  (run ./main.exe)))
+
+(env
+  (dev
+      (flags (:standard -warn-error -A))))
