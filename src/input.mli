@@ -19,6 +19,7 @@ type command =
   | Cancel
   | Step
   | PlaceBuilding
+  | Quit
   | Unrecognized
 
 (**[starting] is the initial input state upon starting the game. *)

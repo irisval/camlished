@@ -18,6 +18,7 @@ type command =
   | Cancel
   | Step
   | PlaceBuilding
+  | Quit
   | Unrecognized
 
 let starting = {
