@@ -240,4 +240,4 @@ let get_test_building =
 let get_test_tile = GameData.Water
 
 let get_test_placed_building = 
-  {building_type= "Silo"; coordinates=(7,8);workers=[];residents=[]}
+  {building_type= "Silo"; coordinates=(0,0);workers=[];residents=[]}

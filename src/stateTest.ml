@@ -40,13 +40,13 @@ let unwrap_tile j  =
 
 
 let unwrap_building_placement_test j = 
-  match (get_building_at (7, 8) j) with 
+  match (get_building_at (0, 0) j) with 
   | Some b -> b
   | None -> failwith "building not found"
 
 let state_tests = [
   "Checking tile parsing" >:: 
-  (fun _ -> assert_equal  (j |> Gamestate.get_tiles |> List.length) 4);
+  (fun _ -> assert_equal  (j |> Gamestate.get_tiles |> List.length) 22);
   "Checking get buildings" >:: 
   (fun _ -> assert (cmp_set_like_lists 
                       (j |> get_game_data |> GameData.building_types) (building_types)));
@@ -64,7 +64,7 @@ let state_tests = [
   "Checking is empty" >:: 
   (fun _ -> assert (is_empty (15, 6) j));
   "Checking make building" >:: 
-  (fun _ -> (assert_equal ((place_building "Silo" (7, 8) j) |> unwrap_building_placement_test)
+  (fun _ -> (assert_equal ((place_building "Silo" (0, 0) j) |> unwrap_building_placement_test)
                get_test_placed_building));
   "Checking population" >:: (fun _ -> (assert_equal (j |> population) 1));
 ]

@@ -1,11 +1,6 @@
 (executables
   (names main stateTest)
   (libraries ANSITerminal str yojson oUnit))
-  
-(rule
- (alias runtest)
- (action
-  (run ./main.exe)))
 
 (env
   (dev

@@ -9,6 +9,7 @@ DUNE 	= dune
 
 all: 
 	$(DUNE) build src/main.exe
+	$(DUNE) build src/stateTest.exe
 
 exec:
 	$(DUNE) exec src/main.exe
@@ -20,7 +21,7 @@ uninstall:
 	$(DUNE) uninstall
 
 test:
-	$(DUNE) runtest
+	$(DUNE) exec src/stateTest.exe
 
 clean:
 	$(DUNE) clean
