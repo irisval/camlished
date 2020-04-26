@@ -36,20 +36,6 @@ type game_state = {
 
 type t = game_state
 
-(* 
-// Removed because reading from user file each time
-let init_state = {
-  turn_id = 0;
-  resources = [];
-  buildings = [];
-  tiles = [];
-  game_data = 
-    try 
-      "gameData.mli" |> Yojson.Basic.from_file |> GameData.from_json
-    with
-    | Yojson.Json_error f -> failwith "can't find file"
-} *)
-
 (* read from json *)
 let json_resource j = {
   id = j |> member "name" |> to_string;
@@ -101,7 +87,7 @@ let step st = {turn_id = st.turn_id + 1;
                game_data = st.game_data}
 
 let get_user_resources st =
-  st.resources
+  List.map (fun r -> (r.id, r.amount)) st.resources
 
 let get_buildings st =
   st.buildings
@@ -129,6 +115,11 @@ let get_tile_at coor st =
 
   in find_coor (fst coor) (snd coor) st.tiles
 
+let tile_rep_at coor st =
+  match get_tile_at coor st with
+  | Some n -> n
+  | None -> Grass
+
 let is_empty coor st =
   match get_building_at coor st with 
   | Some _ -> false 
@@ -149,6 +140,9 @@ let place_building building_type coor st =
      buildings = b::st.buildings;
      tiles = st.tiles;
      game_data = st.game_data}
+
+let can_place_building building_type coor st = 
+  is_empty coor st
 
 (* let gather_resource coor st = 
    match get_building_type_at coor st with 

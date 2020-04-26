@@ -1,9 +1,7 @@
 (executables
   (names main stateTest)
-  (libraries ANSITerminal str yojson oUnit)
-)
-
-
+  (libraries ANSITerminal str yojson oUnit))
+  
 (rule
  (alias runtest)
  (action
@@ -11,4 +9,4 @@
 
 (env
   (dev
-      (flags (:standard -warn-error -A))))
+    (flags (:standard -warn-error -A))))
