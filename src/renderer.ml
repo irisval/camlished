@@ -1,9 +1,8 @@
-type input_state = unit
+type input = Input.t
+type game = Gamestate.t
 
 open Gamestate
 open ANSITerminal
-
-type game_state = Gamestate.t
 
 (**[char_of_building b] is [(s,ch)] where [ch] is the char representing [b],
    [s] is its style features.*)
@@ -16,24 +15,41 @@ let char_of_tile = function
   | Grass -> ([on_green], ' ')
   | Rock -> ([black;on_green],'#')
 
+
+let input_map_overlay (x,y) (input:Input.t) _ = 
+  match input.act with
+  | Input.Placing (_,(xp,yp)) ->
+    begin match (xp = x,yp = y) with
+      | (true,true) -> Some ([white;on_green], ' ')
+      | (true,false) -> Some ([white;on_green], '|')
+      | (false,true) -> Some ([white;on_green], '-')
+      | _ -> None
+    end
+  | _ -> None
+
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
-let char_at pos gs =
-  match Gamestate.get_building_at pos gs
-  with
-  | Some b -> char_of_building b
-  | None -> char_of_tile (Gamestate.get_resource_at pos gs) 
+let char_at pos input gs =
+  let over = input_map_overlay pos input gs in
+  match over with 
+  | Some b -> b
+  | None ->
+    begin match Gamestate.get_building_at pos gs
+      with
+      | Some b -> char_of_building b
+      | None -> char_of_tile (Gamestate.get_resource_at pos gs)
+    end
 
 
 (**[text_map input gs] gives the text representation of the map in [gs] 
     while in input state [input].*)
-let text_map _ gs =
+let text_map input gs =
   let bounds = Gamestate.get_bounds gs in
   let width = fst bounds in
   let height = snd bounds in
   let draw_row y =
     let rec draw_row_aux acc x =
-      let c = char_at (x,y) gs in
+      let c = char_at (x,y) input gs in
       let acc' = (acc@[c]) in
       if (x+1 < width) then draw_row_aux acc' (x+1) else acc'
     in
@@ -108,18 +124,30 @@ let add_resources x y gs arr =
   in
   add_resources_aux y resources
 
-let controls_text = "Press any key to step."
-
-let add_message y msg arr = 
+let add_text x y styletext arr = 
   let arr = extend (y+1) [] arr in
   let linetxt' =
     Array.get arr y
-    |> insert_at 0 (msg |> style_string []) in
+    |> insert_at x styletext in
   Array.set arr y linetxt';
   arr
 
-let hide_cursor () = printf [] "\027[?25l%!"
+let add_message y style msg arr = add_text 0 y (msg |> style_string style) arr
 
+let add_building_picker n y gs arr =
+  let types = Gamestate.get_building_types gs in
+  let selected = List.nth types n in
+  add_text 0 y
+    (types
+     |> List.map Gamestate.get_building_type_name
+     |> List.map
+       (fun e -> style_string (if e = selected then [Inverse] else []) e)
+     |> List.fold_left (fun acc b -> acc@([],' ')::b) []
+    )
+    arr
+
+
+let hide_cursor () = printf [] "\027[?25l%!"
 
 (**[print_2d o] prints [o] to the console with each element of [o] as a
    separate line.*)
@@ -130,15 +158,19 @@ let print_2d o =
         line; print_newline ())
     (Array.to_list o)
 
-let draw input gs = 
+let draw (input:Input.t) gs = 
+  let (_,height) = Gamestate.get_bounds gs in
   let output = 
     text_map input gs 
     |> add_resources 25 1 gs
-    |> add_message 15 controls_text
+    |> add_message height [] input.msg
+    |> (
+      fun o -> match input.act with
+        | Input.BuildingPicker n -> add_building_picker n (height+1) gs o
+        | _ -> o
+    )
   in
   erase Screen;
   hide_cursor ();
   set_cursor 1 1;
   print_2d output
-
-let temp_input_state = ()
