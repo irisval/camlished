@@ -28,8 +28,9 @@ let rec play in_state gs =
   Renderer.draw in_state gs;
   let c = read_char () |> char_to_command in
   let is_quit = match c with Quit -> true | _ -> false in
-  let (in_state',gs') = Input.receive_command c in_state gs in
-  if (not is_quit) && Gamestate.alive gs then play in_state' gs'
+  if is_quit then exit 0 else
+    let (in_state',gs') = Input.receive_command c in_state gs in
+    if Gamestate.alive gs then play in_state' gs'
 
 let () = 
   let gs = ("src/sampleSavedState.json" |> Yojson.Basic.from_file |> Gamestate.from_json) in
