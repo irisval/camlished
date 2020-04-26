@@ -1,3 +1,4 @@
 # camlished
-$ dune clean
-$ dune exec bin/main.exe
+$ opam install dune
+$ make
+$ make exec

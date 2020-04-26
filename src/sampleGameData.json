@@ -1,10 +1,10 @@
 {
   "resource types": [
     "Food",
-    "TiNberwood"
+    "Wood"
   ],
-  "width": 50,
-  "height": 50,
+  "width": 10,
+  "height": 10,
   "building properties": [
     {
       "name": "Tent",
@@ -12,13 +12,13 @@
       "max workers": 0,
       "placement cost": [
         {
-          "resource": "TiNberwood",
+          "resource": "Wood",
           "cost": 10
         }
       ],
       "active generation": [
         {
-          "resource": "TiNberwood",
+          "resource": "Wood",
           "output": 3
         }
       ],
@@ -30,7 +30,7 @@
       "max workers": 5,
       "placement cost": [
         {
-          "resource": "TiNberwood",
+          "resource": "Wood",
           "cost": 10
         }
       ],
@@ -48,7 +48,7 @@
       "max workers": 0,
       "placement cost": [
         {
-          "resource": "TiNberwood",
+          "resource": "Wood",
           "cost": 10
         }
       ],

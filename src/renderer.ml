@@ -16,14 +16,14 @@ let char_of_tile = function
   | Grass -> ([on_green], ' ')
   | Rock -> ([black;on_green],'#')
   | Water -> ([white;on_blue],if Random.bool () then '~' else ' ')
-  | Trees -> ([green;on_black],'^')
+  | Trees -> ([black;on_green],'|')
 
 
 let input_map_overlay (x,y) (input:Input.t) _ = 
   match input.act with
   | Input.Placing (_,(xp,yp)) ->
     begin match (xp = x,yp = y) with
-      | (true,true) -> Some ([white;on_green], ' ')
+      | (true,true) -> Some ([white;on_magenta], ' ')
       | (true,false) -> Some ([white;on_green], '|')
       | (false,true) -> Some ([white;on_green], '-')
       | _ -> None
@@ -161,10 +161,10 @@ let print_2d o =
     (Array.to_list o)
 
 let draw (input:Input.t) gs = 
-  let (_,height) = Gamestate.get_bounds gs in
+  let (width,height) = Gamestate.get_bounds gs in
   let output = 
     text_map input gs 
-    |> add_resources 25 1 gs
+    |> add_resources (width+5) 1 gs
     |> add_message height [] input.msg
     |> (
       fun o -> match input.act with

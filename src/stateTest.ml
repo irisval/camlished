@@ -16,7 +16,7 @@ let cmp_set_like_lists lst1 lst2 =
   uniq1 = uniq2
 
 let building_types: (building_type list) = ["Tent"; "Sawmill"; "Silo"]
-let resource_types: (resource_type list) = ["Food"; "TiNberwood"]
+let resource_types: (resource_type list) = ["Food"; "Wood"]
 
 let unwrap_building_test j = 
   match (get_building_at (5, 6) j) with 

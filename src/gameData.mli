@@ -78,5 +78,3 @@ val storage : building_type -> t -> storage list
 
 (** [get_bounds] returns the bounds of the game*)
 val get_bounds : t -> bounds
-
-(* val get_building_types : t -> (building_type_id*GameData.building_type) list *)

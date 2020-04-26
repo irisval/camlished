@@ -1,14 +1,11 @@
-(* TODO: from stackoverflow. allowed? *)
-
-
 let read_char () =
-  let termio = Unix.tcgetattr Unix.stdin in
+  let io = Unix.tcgetattr Unix.stdin in
   let () =
     Unix.tcsetattr Unix.stdin Unix.TCSADRAIN
-      { termio with Unix.c_icanon = false } in
-  let res = input_char stdin in
-  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN termio;
-  res
+      { io with Unix.c_icanon = false } in
+  let o = input_char stdin in
+  Unix.tcsetattr Unix.stdin Unix.TCSADRAIN io;
+  o
 
 let char_to_command c =
   match Char.escaped c with
