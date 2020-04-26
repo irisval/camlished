@@ -16,7 +16,12 @@
           "cost": 10
         }
       ],
-      "active generation": [],
+      "active generation": [
+        {
+          "resource": "TiNberwood",
+          "output": 3
+        }
+      ],
       "storage": []
     },
     {
@@ -31,9 +36,8 @@
       ],
       "active generation": [
         {
-          "input": 2,
-          "output": 10,
-          "resource outputted": "Food"
+          "resource": "Food",
+          "output": 5
         }
       ],
       "storage": []
@@ -48,7 +52,12 @@
           "cost": 10
         }
       ],
-      "active generation": [],
+      "active generation": [
+        {
+          "resource": "Food",
+          "output": 1
+        }
+      ],
       "storage": [
         {
           "resource": "Food",

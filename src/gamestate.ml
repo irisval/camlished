@@ -80,11 +80,33 @@ let from_json j = try user_data j
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
 
 (* gamestate methods *)
-let step st = {turn_id = st.turn_id + 1;
-               resources = st.resources;
-               buildings = st.buildings;
-               tiles = st.tiles;
-               game_data = st.game_data}
+(* let rec update_resource (rsc_lst:resource list) (id:resource_type) amt acc = 
+   match rsc_lst with 
+   | {id=i;amount=a}::t -> if i = id then update_resource t id amt ({id=i;amount=a+amt}::acc)
+    else update_resource t id amt ({id=i;amount=a}::acc)
+   | [] -> acc
+
+   let building_resource_generation resources (bt:GameData.building_type) st : (resource list)= 
+   let gen_lst = GameData.active_generation bt st.game_data in
+   let rsc_lst = resources in 
+   List.fold_left (fun acc (f:active_generation) -> (update_resource acc f.resource f.output [])) rsc_lst gen_lst *)
+
+let building_resource_generation resources (bt:GameData.building_type) st : (resource list) = 
+  let gen_list = GameData.active_generation bt st.game_data in
+  let update r : resource =
+    let a = r.amount in 
+    match List.find_opt (fun (g:active_generation) -> g.resource = r.id) gen_list with
+    | Some {resource=r; output=o} -> {id=r; amount= a + o}
+    | None -> r
+  in
+  List.map update resources
+
+
+(** [step_buildings buildings resources] is [resources] after stepping
+    all buildings using [resources] *)
+let step_buildings st : resource list =
+  let brg resources building = building_resource_generation resources building.building_type st in
+  List.fold_left brg st.resources st.buildings
 
 let get_user_resources st =
   List.map (fun r -> (r.id, r.amount)) st.resources
@@ -206,6 +228,12 @@ let unassign_workers coor amt st =
     | None -> raise IllegalWorkerAssignment
 
 let alive st = (population st = 0) |> not
+
+let step st = {turn_id = st.turn_id + 1;
+               resources = step_buildings st;
+               buildings = st.buildings;
+               tiles = st.tiles;
+               game_data = st.game_data}
 
 let get_bounds st = GameData.get_bounds st.game_data
 

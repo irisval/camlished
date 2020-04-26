@@ -16,6 +16,12 @@ type bounds = int * int
 (** The type of tiles *)
 type tile_type = Grass | Rock | Water | Trees
 
+(** Active Generation Details *)
+type active_generation = {
+  resource: resource_type;
+  output: int;
+}
+
 (** The placement cost *)
 type placement_cost = {
   resource: resource_type;
@@ -38,7 +44,7 @@ type building_properties = {
   max_residents: int;
   max_workers: int;
   placement_costs: placement_cost list;
-  active_generation: unit;
+  active_generation: active_generation list;
   storages: storage list;
 }
 
@@ -64,7 +70,7 @@ val max_workers : building_type -> t -> int
 val placement_cost : building_type -> t -> placement_cost list
 
 (** [active_generation b dt] is something with active generation *)
-val active_generation : building_type -> t -> unit
+val active_generation : building_type -> t -> active_generation list
 
 (** [storage b dt] is the storage increase(s) that building [b]
     provides in game data [dt] *)

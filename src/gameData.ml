@@ -17,12 +17,17 @@ type storage = {
   capacity: int;
 }
 
+type active_generation = {
+  resource: resource_type;
+  output: int;
+}
+
 type building_properties = {
   name: building_type;
   max_residents: int;
   max_workers: int;
   placement_costs: placement_cost list;
-  active_generation: unit;
+  active_generation: active_generation list;
   storages: storage list;
 }
 
@@ -49,6 +54,11 @@ let json_placement j = {
   cost = j |> member "cost" |> to_int;
 }
 
+let json_generation j = {
+  resource = j |> member "resource" |> to_string;
+  output = j |> member "output" |> to_int;
+}
+
 let json_storage j = {
   resource = j |> member "resource" |> to_string;
   capacity = j |> member "capacity" |> to_int;
@@ -59,7 +69,7 @@ let json_building j = {
   max_workers = j |> member "max workers" |> to_int;
   max_residents = j |> member "max residents" |> to_int;
   placement_costs = j |> member "placement cost" |> to_list |> List.map json_placement;
-  active_generation = ();
+  active_generation = j |> member "active generation" |> to_list |> List.map json_generation;
   storages = j |> member "storage" |> to_list |> List.map json_storage;
 }
 
@@ -96,8 +106,8 @@ let max_workers b dt =
 let placement_cost b dt =
   (properties b dt).placement_costs
 
-let active_generation b dt =
-  ignore b; ignore dt; failwith "Unimplemented"
+let active_generation b dt = 
+  (properties b dt).active_generation
 
 let storage b dt =
   (properties b dt).storages
