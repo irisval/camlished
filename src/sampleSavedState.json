@@ -1,133 +1,133 @@
 {
-  "turn id": 0,
-  "resources": [
-    {
-      "name": "Food",
-      "amount": 2
-    },
-    {
-      "name": "Wood",
-      "amount": 2
-    }
-  ],
-  "buildings": [
-    {
-      "building type": "Tent",
-      "x coordinate": 5,
-      "y coordinate": 6,
-      "workers": [],
-      "residents": [
-        "John Doe"
-      ]
-    },
-    {
-      "building type": "Sawmill",
-      "x coordinate": 3,
-      "y coordinate": 2,
-      "workers": [
-        "John Doe"
-      ],
-      "residents": []
-    }
-  ],
-  "tiles": [
-    {
-      "tile type": "water",
-      "coordinates": [
-        [
-          1,
-          0
-        ],
-        [
-          1,
-          1
-        ],
-        [
-          1,
-          2
-        ],
-        [
-          2,
-          2
-        ],
-        [
-          2,
-          3
-        ],
-        [
-          2,
-          4
-        ],
-        [
-          3,
-          5
-        ],
-        [
-          3,
-          6
-        ],
-        [
-          4,
-          7
-        ],
-        [
-          5,
-          7
-        ],
-        [
-          6,
-          8
-        ],
-        [
-          7,
-          8
-        ],
-        [
-          8,
-          8
-        ],
-        [
-          9,
-          8
-        ]
-      ]
-    },
-    {
-      "tile type": "trees",
-      "coordinates": [
-        [
-          5,
-          6
-        ],
-        [
-          6,
-          6
-        ],
-        [
-          7,
-          6
-        ],
-        [
-          6,
-          5
-        ],
-        [
-          5,
-          5
-        ],
-        [
-          4,
-          5
-        ],
-        [
-          5,
-          4
-        ],
-        [
-          6,
-          4
-        ]
-      ]
-    }
-  ]
+    "turn id":0,
+    "resources":[
+        {
+            "name":"food",
+            "amount":2
+        },
+        {
+            "name":"wood",
+            "amount":2
+        }
+    ],
+    "buildings":[
+        {
+            "building type":"tent",
+            "x coordinate":5,
+            "y coordinate":6,
+            "workers":[],
+            "residents":[
+                "john doe"
+            ]
+        },
+        {
+            "building type":"sawmill",
+            "x coordinate":3,
+            "y coordinate":2,
+            "workers":[
+                "john doe"
+            ],
+            "residents":[]
+        }
+    ],
+    "tiles":[
+        {
+            "tile type":"water",
+            "coordinates":[
+                [
+                    1,
+                    0
+                ],
+                [
+                    1,
+                    1
+                ],
+                [
+                    1,
+                    2
+                ],
+                [
+                    2,
+                    2
+                ],
+                [
+                    2,
+                    3
+                ],
+                [
+                    2,
+                    4
+                ],
+                [
+                    3,
+                    5
+                ],
+                [
+                    3,
+                    6
+                ],
+                [
+                    4,
+                    7
+                ],
+                [
+                    5,
+                    7
+                ],
+                [
+                    6,
+                    8
+                ],
+                [
+                    7,
+                    8
+                ],
+                [
+                    8,
+                    8
+                ],
+                [
+                    9,
+                    8
+                ]
+            ]
+        },
+        {
+            "tile type":"forest",
+            "coordinates":[
+                [
+                    5,
+                    6
+                ],
+                [
+                    6,
+                    6
+                ],
+                [
+                    7,
+                    6
+                ],
+                [
+                    6,
+                    5
+                ],
+                [
+                    5,
+                    5
+                ],
+                [
+                    4,
+                    5
+                ],
+                [
+                    5,
+                    4
+                ],
+                [
+                    6,
+                    4
+                ]
+            ]
+        }
+    ]
 }

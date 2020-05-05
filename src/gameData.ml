@@ -5,16 +5,25 @@ type resource_type = string
 type building_type = string
 type bounds = int * int
 
-type tile_type = Grass | Rock | Water | Trees
+type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
+type placement_rule_type = On | Next | Only
 
-type placement_cost = {
+
+type requirement = {
   resource: resource_type;
-  cost: int;
+  amount: int;
 }
 
-type storage = {
-  resource: resource_type;
-  capacity: int;
+type placement_rule = {
+  rule_type: placement_rule_type;
+  tile: tile_type;
+}
+
+type consumption_generation = {
+  input_resource: resource_type;
+  input_amount: int;
+  output_resource: resource_type;
+  output_amount: int;
 }
 
 type active_generation = {
@@ -22,11 +31,19 @@ type active_generation = {
   output: int;
 }
 
+type storage = {
+  resource: resource_type;
+  capacity: int;
+}
+
+
 type building_properties = {
   name: building_type;
   max_residents: int;
   max_workers: int;
-  placement_costs: placement_cost list;
+  requirements: requirement list;
+  placement_rule: placement_rule list;
+  consumption_generation: consumption_generation list;
   active_generation: active_generation list;
   storages: storage list;
 }
@@ -41,20 +58,41 @@ type t = game_data
 
 let tile_type_of_string = function
   | "grass" -> Grass
-  | "rock" -> Rock
+  | "mountain" -> Mountain
   | "water" -> Water
-  | "trees" -> Trees
+  | "forest" -> Forest
+  | "flowers" -> Flowers
+  | "sand" -> Sand
   | _ -> failwith "Invalid string to tile type conversion"
 
+let placement_rule_of_string = function
+  | "on" -> On
+  | "next" -> Next
+  | "only" -> Only
+  | _ -> failwith "Invalid string to placement rule conversion"
+
 (* read from json *)
+(** Todo: Add json specs *)
 let json_resource j = j |> to_string
 
-let json_placement j = {
+let json_requirements j = {
   resource = j |> member "resource" |> to_string;
-  cost = j |> member "cost" |> to_int;
+  amount = j |> member "amount" |> to_int;
 }
 
-let json_generation j = {
+let json_placement j = {
+  rule_type = j |> member "type" |> to_string |> placement_rule_of_string;
+  tile = j |> member "tile" |> to_string |> tile_type_of_string;
+}
+
+let json_consumption_gen j = {
+  input_resource = j |> member "input resource" |> to_string;
+  input_amount = j |> member "input amount" |> to_int;
+  output_resource = j |> member "output resource" |> to_string;
+  output_amount = j |> member "output amount" |> to_int;
+}
+
+let json_active_gen j = {
   resource = j |> member "resource" |> to_string;
   output = j |> member "output" |> to_int;
 }
@@ -66,10 +104,12 @@ let json_storage j = {
 
 let json_building j = {
   name = j |> member "name" |> to_string;
-  max_workers = j |> member "max workers" |> to_int;
   max_residents = j |> member "max residents" |> to_int;
-  placement_costs = j |> member "placement cost" |> to_list |> List.map json_placement;
-  active_generation = j |> member "active generation" |> to_list |> List.map json_generation;
+  max_workers = j |> member "max workers" |> to_int;
+  requirements = j |> member "requirements" |> to_list |> List.map json_requirements;
+  placement_rule = j |> member "placement rule" |> to_list |> List.map json_placement;
+  consumption_generation = j |> member "consumption generation" |> to_list |> List.map json_consumption_gen;
+  active_generation = j |> member "active generation" |> to_list |> List.map json_active_gen;
   storages = j |> member "storage" |> to_list |> List.map json_storage;
 }
 
@@ -103,8 +143,8 @@ let max_residents b dt =
 let max_workers b dt =
   (properties b dt).max_workers
 
-let placement_cost b dt =
-  (properties b dt).placement_costs
+let placement_requirements b dt =
+  (properties b dt).requirements
 
 let active_generation b dt = 
   (properties b dt).active_generation

@@ -14,9 +14,9 @@ let char_of_building = function
    [s] is its style features.*)
 let char_of_tile = function
   | Grass -> ([on_green], ' ')
-  | Rock -> ([black;on_green],'#')
+  | Mountain -> ([black;on_green],'#')
   | Water -> ([white;on_blue],if Random.bool () then '~' else ' ')
-  | Trees -> ([black;on_green],'|')
+  | Forest -> ([black;on_green],'|')
 
 
 let input_map_overlay (x,y) (input:Input.t) _ = 

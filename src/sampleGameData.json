@@ -1,69 +1,233 @@
 {
   "resource types": [
-    "Food",
-    "Wood"
+    "food",
+    "stone",
+    "wood",
+    "planks",
+    "ore",
+    "metal"
   ],
   "width": 10,
   "height": 10,
   "building properties": [
     {
-      "name": "Tent",
-      "max residents": 5,
+      "name": "tent",
+      "max residents": 2,
       "max workers": 0,
-      "placement cost": [
+      "requirements": [],
+      "placement rule": [],
+      "consumption generation": [],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "wood shelter",
+      "max residents": 3,
+      "max workers": 0,
+      "requirements": [
         {
-          "resource": "Wood",
-          "cost": 10
+          "resource": "wood",
+          "amount": 5
         }
       ],
+      "placement rule": [],
+      "consumption generation": [],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "log cabin",
+      "max residents": 6,
+      "max workers": 0,
+      "requirements": [
+        {
+          "resource": "wood",
+          "amount": 15
+        },
+        {
+          "resource": "planks",
+          "amount": 10
+        }
+      ],
+      "placement rule": [],
+      "consumption generation": [],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "castle",
+      "max residents": 30,
+      "max workers": 0,
+      "requirements": [
+        {
+          "resource": "stone",
+          "amount": 100
+        }
+      ],
+      "placement rule": [],
+      "consumption generation": [],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "quarry",
+      "max residents": 0,
+      "max workers": 7,
+      "requirements": [
+        {
+          "resource": "wood",
+          "amount": 25
+        }
+      ],
+      "placement rule": [{
+        "type": "on",
+        "tile": "mountain"
+      }],
+      "consumption generation": [],
       "active generation": [
         {
-          "resource": "Wood",
-          "output": 3
+          "resource": "stone",
+          "output": 10
         }
       ],
       "storage": []
     },
     {
-      "name": "Sawmill",
+      "name": "mine",
       "max residents": 0,
-      "max workers": 5,
-      "placement cost": [
-        {
-          "resource": "Wood",
-          "cost": 10
-        }
-      ],
+      "max workers": 8,
+      "requirements": [],
+      "placement rule": [{
+        "type": "on",
+        "tile": "mountain"
+      }],
+      "consumption generation": [],
       "active generation": [
         {
-          "resource": "Food",
+          "resource": "ore",
+          "output": 10
+        }
+      ],
+      "storage": []
+    },
+    {
+      "name": "tree farm",
+      "max residents": 0,
+      "max workers": 5,
+      "requirements": [],
+      "placement rule": [{
+        "type": "on",
+        "tile": "forest"
+      }],
+      "consumption generation": [],
+      "active generation": [
+        {
+          "resource": "wood",
+          "output": 6
+        }
+      ],
+      "storage": []
+    },
+    {
+      "name": "forge",
+      "max residents": 0,
+      "max workers": 6,
+      "requirements": [
+        {
+          "resource": "stone",
+          "amount": 10
+        },
+        {
+          "resource": "wood",
+          "amount": 10
+        }
+      ],
+      "placement rule": [],
+      "consumption generation": [
+        {
+          "input resource": "ore",
+          "input amount": 5,
+          "output resource": "metal",
+          "output amount": 2
+        }
+      ],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "sawmill",
+      "max residents": 0,
+      "max workers": 7,
+      "requirements": [
+        {
+          "resource": "metal",
+          "amount": 5
+        },
+        {
+          "resource": "wood",
+          "amount": 5
+        },
+        {
+          "resource": "stone",
+          "amount": 5
+        }
+      ],
+      "placement rule": [],
+      "consumption generation": [
+        {
+          "input resource": "wood",
+          "input amount": 1,
+          "output resource": "planks",
+          "output amount": 5
+        }
+      ],
+      "active generation": [],
+      "storage": []
+    },
+    {
+      "name": "fishing dock",
+      "max residents": 0,
+      "max workers": 3,
+      "requirements": [
+        {
+          "resource": "metal",
+          "amount": 5
+        },
+         {
+          "resource": "planks",
+          "amount": 10
+        }
+      ],
+      "placement rule": [{
+        "type": "next",
+        "tile": "water"
+      }],
+      "consumption generation": [],
+      "active generation": [
+        {
+          "resource": "food",
           "output": 5
         }
       ],
       "storage": []
     },
     {
-      "name": "Silo",
-      "max residents": 0,
-      "max workers": 0,
-      "placement cost": [
-        {
-          "resource": "Wood",
-          "cost": 10
-        }
-      ],
+      "name": "farm",
+      "max residents": 3,
+      "max workers": 7,
+      "requirements": [],
+      "placement rule": [{
+        "type": "only",
+        "tile": "grass"
+      }],
+      "consumption generation": [],
       "active generation": [
         {
-          "resource": "Food",
-          "output": 1
+          "resource": "food",
+          "output": 4
         }
       ],
-      "storage": [
-        {
-          "resource": "Food",
-          "capacity": 50
-        }
-      ]
+      "storage": []
     }
   ]
 }
