@@ -8,7 +8,9 @@ open ANSITerminal
 (**[char_of_building b] is [(s,ch)] where [ch] is the char representing [b],
    [s] is its style features.*)
 let char_of_building = function
-  | _ -> ([], 'M')
+  | "Tent" -> ([black;on_green], '^')
+  | "Sawmill" -> ([black;on_green],'*')
+  | _ -> ([black;on_white],'?')
 
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
@@ -37,11 +39,30 @@ let char_at pos input gs =
   match over with 
   | Some b -> b
   | None ->
-    begin match Gamestate.get_building_at pos gs
+    begin match Gamestate.get_building_type_at pos gs
       with
       | Some b -> char_of_building b
       | None -> char_of_tile (Gamestate.tile_rep_at pos gs)
     end
+
+
+(**[repeat_list n x] is a list of [x] repeated [n] times. *)
+let rec repeat_list n x =
+  if (n = 0) then [] else x::(repeat_list (n-1) x)
+
+
+(**[add_border arr width] is [arr] with a border added surrounding it, where
+   [width] is the width of the array. *)
+let add_border arr width =
+  let top = ([],'\\')::repeat_list (width)  ([],'-')@[([],'/')]
+            |> Array.make 1  in
+  let bot = ([],'/')::repeat_list (width)  ([],'-')@[([],'\\')]
+            |> Array.make 1  in
+  Array.concat [
+    top;
+    Array.map (fun x -> ([],'|')::x@[([],'|')]) arr;
+    bot;
+  ]
 
 
 (**[text_map input gs] gives the text representation of the map in [gs] 
@@ -64,7 +85,8 @@ let text_map input gs =
     if(y+1 < height) then draw_aux arr (y+1) else arr
   in
   let arr = Array.make height [] in
-  draw_aux arr 0
+  let raw_map = draw_aux arr 0 in
+  add_border raw_map width 
 
 let string_to_chars s =
   let rec aux i acc = 
@@ -156,7 +178,7 @@ let hide_cursor () = printf [] "\027[?25l%!"
 let print_2d o =
   List.iter
     (fun line -> List.iter
-        (fun (s,c) -> print_string s (c |> Char.escaped) )
+        (fun (s,c) -> print_string s (c |> String.make 1 ) )
         line; print_newline ())
     (Array.to_list o)
 
@@ -165,7 +187,7 @@ let draw (input:Input.t) gs =
   let output = 
     text_map input gs 
     |> add_resources (width+5) 1 gs
-    |> add_message height [] input.msg
+    |> add_message (height+2) [] input.msg
     |> (
       fun o -> match input.act with
         | Input.BuildingPicker n -> add_building_picker n (height+1) gs o
