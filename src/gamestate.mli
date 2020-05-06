@@ -5,7 +5,7 @@ type coordinates = (int*int)
 type resource
 
 (** The type representing a person *)
-type person
+type person = string
 
 (**  The type representing a building*)
 type building
@@ -52,7 +52,7 @@ val get_user_resources : t -> (string * int) list
    at the coordinates [coor] on the state map. Returns None if there is no building. *)
 val get_building_at : coordinates -> t -> building option
 
-(* [get_building_at coor st] returns the building_type option of the building located
+(* [get_building_type_at coor st] returns the building_type option of the building located
    at the coordinates [coor] on the state map. Returns None if there is no building. *)
 val get_building_type_at : coordinates -> t -> GameData.building_type option
 
@@ -93,18 +93,32 @@ val assigned_workers : t -> person list
 (** [unassigned_workers st] is the list of people who don't have job in [st] *)
 val unassigned_workers : t -> person list
 
-(** [assign_workers coor amt st] assigns [amt] workers to the building at
-    [coor] if possible, else raises IllegalWorkerAssignment. *)
-val assign_workers : coordinates -> int -> t -> t
+(** [assign_workers_b b amt st] assigns [amt] workers to [b],
+    raising IllegalWorkerAssignment if not enough unassigned workers. *)
+val assign_workers_b : building -> int -> t -> t
 
-(** [unassign_workers coor amt st] unassigns [amt] workers from building at
+(** [assign_workers_c coor amt st] assigns [amt] workers to the building at
     [coor] if possible, else raises IllegalWorkerAssignment. *)
-val unassign_workers : coordinates -> int -> t -> t
+val assign_workers_c : coordinates -> int -> t -> t
 
-(** [alive st] gives where the population of a society has died*)
+(** [unassign_workers_b b amt st] unassigns [amt] workers or the max possible
+    from [b], raising IllegalWorkerAssignment if trying to unassign negative. *)
+val unassign_workers_b : building -> int -> t -> t
+
+(** [unassign_workers_c coor amt st] unassigns [amt] workers from building at
+    [coor] if possible, else raises IllegalWorkerAssignment. *)
+val unassign_workers_c : coordinates -> int -> t -> t
+
+(** [building_residents b] is the list of residents at [b] *)
+val building_residents : building -> person list
+
+(** [building_workers b] is the list of workers at [b] *)
+val building_workers : building -> person list
+
+(** [alive st] is if there are still living people in [st] *)
 val alive : t -> bool
 
-(** [get_bounds] returns the bounds of the game*)
+(** [get_bounds] returns the bounds of the game *)
 val get_bounds : t -> GameData.bounds
 
 (** [get_test_building] generates a building for testing *)

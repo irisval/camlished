@@ -42,19 +42,31 @@ let unwrap_tile j  =
   | Some t -> t
   | None -> failwith "tile not found"
 
-
 let unwrap_building_placement_test j = 
   match (get_building_at (0, 0) j) with 
   | Some b -> b
   | None -> failwith "building not found"
 
+(** [unwrap_building b] is [b] but not optional *)
+let unwrap_building b =
+  match b with
+  | Some b -> b
+  | None -> failwith "failed to unwrap building"
+
+let tent_1_residents = ["john doe"; "jane doe"]
+let tent_2_residents = ["martha"]
+let all_residents = tent_1_residents @ tent_2_residents
+let assigned_workers = ["john doe"; "martha"]
+let unassigned_workers = ["jane doe"]
+let sawmill_workers = ["john doe"; "martha"]
+
 let state_tests = [
   "Checking tile parsing" >:: (fun _ ->
       assert_equal  (j |> Gamestate.get_tiles |> List.length) 22);
-  "Checking get buildings" >:: (fun _ ->
+  "Checking get building types" >:: (fun _ ->
       assert (cmp_set_like_lists
                 (j |> get_game_data |> GameData.building_types) (building_types)));
-  "Checking get resources" >:: (fun _ ->
+  "Checking get resource types" >:: (fun _ ->
       assert (cmp_set_like_lists
                 (j |> get_game_data |> GameData.resource_types) (resource_types)));
   "Checking get building at" >:: (fun _ ->
@@ -70,12 +82,61 @@ let state_tests = [
   (* "Checking make building" >::
      (fun _ -> (assert_equal ((place_building "Silo" (0, 0) j) |> unwrap_building_placement_test)
                get_test_placed_building)); *)
-  "Checking population" >:: (fun _ ->
-      (assert_equal (j |> population) 1));
+]
+
+let population_tests = [
+  "Population is 3" >:: (fun _ ->
+      (assert_equal (j |> population) 3));
+  "List of all residents" >:: (fun _ ->
+      assert (cmp_set_like_lists (Gamestate.all_residents j) (all_residents)));
+  "List of assigned workers" >:: (fun _ ->
+      assert (cmp_set_like_lists (Gamestate.assigned_workers j) (assigned_workers)));
+  "List of unassigned workers" >:: (fun _ ->
+      assert (cmp_set_like_lists (Gamestate.unassigned_workers j) (unassigned_workers)));
+  "Residents of tent 1" >:: (fun _ ->
+      assert (cmp_set_like_lists
+                (get_building_at (5,6) j |> unwrap_building |> building_residents)
+                (tent_1_residents)));
+  "Residents of tent 2" >:: (fun _ ->
+      assert (cmp_set_like_lists
+                (get_building_at (7,5) j |> unwrap_building |> building_residents)
+                (tent_2_residents)));
+  "Workers at sawmill" >:: (fun _ ->
+      assert (cmp_set_like_lists
+                (get_building_at (3,2) j |> unwrap_building |> building_workers)
+                (sawmill_workers)));
+  "Unassign one worker should be 1 worker in building" >:: (fun _ ->
+      (assert_equal (unassign_workers_c (3,2) 1 j |> get_building_at (3,2)
+                     |> unwrap_building |> building_workers |> List.length) (1)));
+  "Assign one worker should be 3 worker in building" >:: (fun _ ->
+      (assert_equal (assign_workers_c (3,2) 1 j |> get_building_at (3,2)
+                     |> unwrap_building |> building_workers |> List.length) (3)));
+  "Assign one worker added the unassigned person's name" >:: (fun _ ->
+      assert (cmp_set_like_lists
+                (assign_workers_c (3,2) 1 j |> get_building_at (3,2)
+                 |> unwrap_building |> building_workers)
+                (all_residents)));
+  "Unassign two worker and everyone should be unemployed" >:: (fun _ ->
+      assert (cmp_set_like_lists
+                (unassign_workers_c (3,2) 2 j |> Gamestate.unassigned_workers)
+                (all_residents)));
+  "Assign workers to non-building raises exn" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> assign_workers_c (1,0) 1 j));
+  "Assign workers to tent raises exn" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> assign_workers_c (5,6) 1 j));
+  "Assign 2 workers raises exn: only one is available" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> assign_workers_c (3,2) 2 j));
+  "Assign -1 workers raises exn" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> assign_workers_c (3,2) ~-1 j));
+  "Unassign 3 workers raises exn: only two are available" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> unassign_workers_c (3,2) 3 j));
+  "Unassign -1 workers raises exn" >:: (fun _ ->
+      assert_raises IllegalWorkerAssignment (fun () -> unassign_workers_c (3,2) ~-1 j));
 ]
 
 let tests = [
   state_tests;
+  population_tests;
 ]
 
 let suite = "state test suite" >::: List.flatten tests

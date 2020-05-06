@@ -17,7 +17,17 @@
       "y coordinate": 6,
       "workers": [],
       "residents": [
-        "john doe"
+        "john doe",
+	"jane doe"
+      ]
+    },
+    {
+      "building type": "tent",
+      "x coordinate": 7,
+      "y coordinate": 5,
+      "workers": [],
+      "residents": [
+        "martha"
       ]
     },
     {
@@ -25,7 +35,8 @@
       "x coordinate": 3,
       "y coordinate": 2,
       "workers": [
-        "john doe"
+        "john doe",
+	"martha"
       ],
       "residents": []
     }
