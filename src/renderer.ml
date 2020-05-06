@@ -8,17 +8,26 @@ open ANSITerminal
 (**[char_of_building b] is [(s,ch)] where [ch] is the char representing [b],
    [s] is its style features.*)
 let char_of_building = function
-  | "Tent" -> ([black;on_green], '^')
-  | "Sawmill" -> ([black;on_green],'*')
+  | "Tent" -> ([white;on_black], '&')
+  | "Wood Shelter" -> ([white;on_black], 'T')
+  | "Log Cabin" -> ([white;on_black], 'H')
+  | "Sawmill" -> ([white;on_black],'*')
+  | "Castle" -> ([white;on_black],'M')
+  | "Quarry" -> ([white;on_black],'Q')
+  | "Mine" -> ([white;on_black],'_')
+  | "Forester" -> ([white;on_black],'n')
+  | "Forge" -> ([white;on_black],'l')
+  | "Fishing Docks" -> ([white;on_black],'=')
+  | "Farm" -> ([white;on_yellow],' ')
   | _ -> ([black;on_white],'?')
 
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
 let char_of_tile = function
   | Grass -> ([on_green], ' ')
-  | Rock -> ([black;on_green],'#')
+  | Rock -> ([Bold;black;on_green],'^')
   | Water -> ([white;on_blue],if Random.bool () then '~' else ' ')
-  | Trees -> ([black;on_green],'|')
+  | Trees -> ([black;on_green],'l')
 
 
 let input_map_overlay (x,y) (input:Input.t) _ = 
@@ -109,7 +118,7 @@ let rec first n s =
     | [] -> s
     | h::k -> h :: (first (n-1) k)
 
-let last n s = first n (List.rev s)
+let last n s = List.rev (first n (List.rev s))
 
 let rec fill_to n filler s =
   if List.length s >= n then s
@@ -170,6 +179,10 @@ let add_building_picker n y gs arr =
     )
     arr
 
+let add_turn x y gs arr = 
+  let s = "Turn: "^(Gamestate.get_turn gs |> string_of_int) in
+  add_text x y (style_string [cyan] s) arr
+
 
 let hide_cursor () = printf [] "\027[?25l%!"
 
@@ -184,17 +197,20 @@ let print_2d o =
 
 let draw (input:Input.t) gs = 
   let (width,height) = Gamestate.get_bounds gs in
-  let output = 
-    text_map input gs 
-    |> add_resources (width+5) 1 gs
-    |> add_message (height+2) [] input.msg
+  let output = ref (text_map input gs) in
+  let map_bottom = height + 3 in
+  let map_right = width + 2 in
+  output := 
+    Array.append (Array.make 1 []) !output
+    |> add_resources (map_right + 3) 1 gs
+    |> add_turn 0 0 gs
+    |> add_message (map_bottom) [] input.msg
     |> (
       fun o -> match input.act with
-        | Input.BuildingPicker n -> add_building_picker n (height+1) gs o
+        | Input.BuildingPicker n -> add_building_picker n (map_bottom+1) gs o
         | _ -> o
-    )
-  in
+    );
   erase Screen;
   hide_cursor ();
   set_cursor 1 1;
-  print_2d output
+  print_2d !output

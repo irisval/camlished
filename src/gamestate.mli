@@ -112,3 +112,6 @@ val get_test_tile : GameData.tile_type
 
 (** [get_test_placed_building] generates a building for placement testing *)
 val get_test_placed_building : building 
+
+(**[get_turn gs] is the current turn in [gs]. *)
+val get_turn : t -> int

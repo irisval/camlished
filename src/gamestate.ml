@@ -241,3 +241,5 @@ let get_test_tile = GameData.Water
 
 let get_test_placed_building = 
   {building_type= "Silo"; coordinates=(0,0);workers=[];residents=[]}
+
+let get_turn gs = gs.turn_id
