@@ -99,6 +99,9 @@ let step_buildings st : resource list =
   let brg resources building = building_resource_generation resources building.building_type st in
   List.fold_left brg st.resources st.buildings
 
+let turns st =
+  st.turn_id
+
 let get_user_resources st =
   List.map (fun r -> (r.id, r.amount)) st.resources
 
@@ -222,10 +225,10 @@ let step st = {turn_id = st.turn_id + 1;
 
 let get_bounds st = GameData.get_bounds st.game_data
 
-let get_test_building = 
+let get_test_building =
   {building_type= "tent"; coordinates=(5,6);workers=[];residents=["john doe"]}
 
 let get_test_tile = GameData.Water
 
-let get_test_placed_building = 
+let get_test_placed_building =
   {building_type= "silo"; coordinates=(0,0);workers=[];residents=[]}

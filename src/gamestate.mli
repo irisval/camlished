@@ -4,7 +4,7 @@ type coordinates = (int*int)
 (** The type representing a resource *)
 type resource
 
-(** The type representing a perons *)
+(** The type representing a person *)
 type person
 
 (**  The type representing a building*)
@@ -33,6 +33,9 @@ val from_json : Yojson.Basic.t -> t
     TODO: incorporate game changes in between steps *)
 val step : t -> t
 
+(** [turns st] is the number of turns in [st] *)
+val turns : t -> int
+
 (* [get_buildings st] gives a list of all the buildings on the state's map. *)
 val get_buildings : t -> building list
 
@@ -57,12 +60,12 @@ val get_building_type_at : coordinates -> t -> GameData.building_type option
    at the coordinates [coor] on the state map. Returns None if tile is empty. *)
 val get_tile_at : coordinates -> t -> GameData.tile_type option
 
-(* [get_tile_at coor st] returns the tile_type of the tile
+(* [tile_rep_at coor st] returns the tile_type of the tile
    at the coordinates [coor] on the state map. Returns Grass if tile is empty. *)
 val tile_rep_at : coordinates -> t -> GameData.tile_type
 
 (** [is_empty coor st] gives whether or not a tile at the coordinates [coor]
-    is empty *)
+    is empty (it has no buildings and no explicit tile?) *)
 val is_empty : coordinates -> t -> bool
 
 (** [place_building building_type coor worker_amt st] places a building of the
@@ -111,4 +114,4 @@ val get_test_building : building
 val get_test_tile : GameData.tile_type
 
 (** [get_test_placed_building] generates a building for placement testing *)
-val get_test_placed_building : building 
+val get_test_placed_building : building
