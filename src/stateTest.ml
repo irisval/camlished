@@ -97,23 +97,23 @@ let state_tests = [
 
 let resource_tests = [
   "Correctly update already existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt (update_rsc j get_test_food) get_test_food) 
+    assert_equal (get_rsc_amt get_test_food (update_rsc get_test_food j)) 
     39);
   "Correctly add a non-existing resource" >:: (fun _ ->
     assert_equal 
-    ((update_rsc j get_test_planks) |> get_user_resources |> List.length) 4);
+    ((update_rsc get_test_planks j) |> get_user_resources |> List.length) 4);
   "Correctly update a non-existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt (update_rsc j get_test_planks) get_test_planks) 
+    assert_equal (get_rsc_amt get_test_planks (update_rsc get_test_planks j)) 
     3);
   "Correctly consume resource input and generate resource output"  >:: (fun _ ->
-    let st' = (building_consumption_gen j (j |> unwrap_sawmill_test)) in 
-    assert ((get_rsc_amt st' get_test_wood) = 11 && (get_rsc_amt st' get_test_planks) = 5));
+    let st' = (building_consumption_gen (j |> unwrap_sawmill_test) j) in 
+    assert ((get_rsc_amt get_test_wood st' ) = 11 && (get_rsc_amt  get_test_planks st') = 5));
   "Buiding generates no output when there's insufficient resource input"  >:: (fun _ ->
-    let st' = (building_consumption_gen j (j |> unwrap_forge_test)) in 
-    assert ((get_rsc_amt st' get_test_ore) = 2 && (get_rsc_amt st' get_test_metal) = 0));
+    let st' = (building_consumption_gen (j |> unwrap_forge_test) j) in 
+    assert ((get_rsc_amt get_test_ore st') = 2 && (get_rsc_amt get_test_metal st') = 0));
   "Building actively generates resource correctly" >:: (fun _ ->
-    let st' = (building_active_gen j (j |> unwrap_fdock_test)) in 
-    assert ((get_rsc_amt st' get_test_food) = 42 && 
+    let st' = (building_active_gen (j |> unwrap_fdock_test) j) in 
+    assert ((get_rsc_amt get_test_food st') = 42 && 
             (st' |> get_user_resources |> List.length) = 3));
     
 ]

@@ -129,14 +129,14 @@ let save (st:t) =
 
 (** [rsc_check st rsc] checks that [rsc] is defined in the resource types of the 
   game data in [st] *)
-let rsc_check st rsc =
+let rsc_check rsc st =
   let rsc_lst = st.game_data |> GameData.resource_types in 
   match List.find_opt (fun r -> r = rsc.id) rsc_lst with 
   | Some _ -> rsc 
   | None -> raise IllegalResourceType
 
-let update_rsc st (u_rsc : resource)  : t =
-  let u_rsc' = rsc_check st u_rsc in 
+let update_rsc (u_rsc : resource) st : t =
+  let u_rsc' = rsc_check u_rsc st in 
   let rec update (rsc_lst:resource list) (acc:resource list)  = 
   match rsc_lst with 
   | r::t -> if r.id = u_rsc'.id then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
@@ -144,35 +144,35 @@ let update_rsc st (u_rsc : resource)  : t =
   | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
   {st with resources = update st.resources []}
 
-let get_rsc_amt st rsc : int =
+let get_rsc_amt rsc st : int =
   match List.find_opt (fun r -> r.id = rsc.id) st.resources with 
   | Some rsc -> rsc.amount
   | None -> 0
 
 
-let building_consumption_gen st (bt:GameData.building_type) = 
+let building_consumption_gen (bt:GameData.building_type) st = 
   let gen_lst = GameData.consumption_generation bt st.game_data in
   List.fold_left (fun st' g ->
     let input = {id=g.input_resource; amount=g.input_amount} in 
-      if (get_rsc_amt st' input) >= g.input_amount then
-        let input_st' = (update_rsc st' {input with amount=(g.input_amount* -1)}) in 
-        (update_rsc input_st' {id=g.output_resource; amount=g.output_amount})
+      if (get_rsc_amt input st') >= g.input_amount then
+        let input_st' = (update_rsc {input with amount=(g.input_amount* -1)} st') in 
+        (update_rsc {id=g.output_resource; amount=g.output_amount} input_st')
       else st')
   st gen_lst
 
 
-let building_active_gen st (bt:GameData.building_type) =
+let building_active_gen (bt:GameData.building_type) st =
   let gen_lst = GameData.active_generation bt st.game_data in
   List.fold_left (fun st' (g:active_generation) -> 
-    update_rsc st' {id=g.resource; amount=g.output}) st gen_lst 
+    update_rsc {id=g.resource; amount=g.output} st') st gen_lst 
  
 
 (** [step_buildings buildings resources] is [resources] after stepping
     all buildings using [resources] *)
 let step_buildings st =
     List.fold_left (fun st' b -> 
-      let active_st' = building_active_gen st' b.building_type in 
-        building_consumption_gen active_st' b.building_type) st st.buildings
+      let active_st' = building_active_gen b.building_type st' in 
+        building_consumption_gen b.building_type active_st') st st.buildings
 
 
 let turns st =
@@ -232,6 +232,8 @@ let place_building building_type coor st =
      buildings = b::st.buildings;
      tiles = st.tiles;
      game_data = st.game_data}
+
+(* let meets_requirements st building_type st =  *)
 
 let can_place_building building_type coor st =
   is_empty coor st
