@@ -95,8 +95,12 @@ val max_workers : building_type -> t -> int
     the resource types and amounts, to build [b] in game data [dt] *)
 val placement_requirements : building_type -> t -> requirement list
 
-(** [active_generation b dt] is something with active generation *)
+(** [active_generation b dt] gives the active generation details of a building *)
 val active_generation : building_type -> t -> active_generation list
+
+(** [consumption_generation b dt] gives the consumption generation details 
+    of a building *)
+val consumption_generation : building_type -> t -> consumption_generation list
 
 (** [storage b dt] is the storage increase(s) that building [b]
     provides in game data [dt] *)

@@ -7,6 +7,10 @@
         },
         {
             "name":"wood",
+            "amount":12
+        },
+        {
+            "name":"ore",
             "amount":2
         }
     ],
@@ -14,6 +18,17 @@
         {
             "building type":"fishing dock",
             "x coordinate":6,
+            "y coordinate":1,
+            "workers":[
+
+            ],
+            "residents":[
+
+            ]
+        },
+         {
+            "building type":"forge",
+            "x coordinate":3,
             "y coordinate":1,
             "workers":[
 

@@ -158,5 +158,8 @@ let placement_requirements b dt =
 let active_generation b dt = 
   (properties b dt).active_generation
 
+let consumption_generation b dt = 
+  (properties b dt).consumption_generation
+
 let storage b dt =
   (properties b dt).storages
