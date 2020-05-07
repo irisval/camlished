@@ -70,6 +70,9 @@ type building_properties = {
 (** [tile_type_of_string s] is the tile variant representation of s *)
 val tile_type_of_string : string -> tile_type
 
+(** [string_of_tile_type t] the string representation of the tile variant t *)
+val string_of_tile_type : tile_type -> string 
+
 (** [placement_rule_of_string s] is the placement rule type variant 
 representation of s *)
 val placement_rule_of_string : string -> placement_rule_type

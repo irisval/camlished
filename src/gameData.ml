@@ -65,6 +65,15 @@ let tile_type_of_string = function
   | "sand" -> Sand
   | _ -> failwith "Invalid string to tile type conversion"
 
+let string_of_tile_type = function
+  | Grass -> "grass" 
+  | Mountain -> "mountain"
+  | Water -> "water"
+  | Forest -> "forest"
+  | Flowers -> "flowers"
+  | Sand -> "sand"
+  | _ -> failwith "Invalid string to tile type conversion"
+
 let placement_rule_of_string = function
   | "on" -> On
   | "next" -> Next

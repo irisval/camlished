@@ -29,6 +29,10 @@ exception IllegalWorkerAssignment
     Requires: [j] is a valid JSON game state representation. *)
 val from_json : Yojson.Basic.t -> t
 
+
+(** [save st] saves the game by writing the game state to the data file. *)
+val save : t -> unit
+
 (** [step st] steps one turn through the game state [st]. 
     TODO: incorporate game changes in between steps *)
 val step : t -> t
