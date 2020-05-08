@@ -3,6 +3,7 @@ type action =
   | Observing
   | Placing of (GameData.building_type * Gamestate.coordinates)
   | BuildingPicker of int
+  | Inspecting of (Gamestate.coordinates)
 type t = {
   msg : string;
   act : action;
@@ -19,6 +20,7 @@ type command =
   | Cancel
   | Step
   | PlaceBuilding
+  | Inspect
   | Quit
   | Unrecognized
 

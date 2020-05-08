@@ -30,7 +30,7 @@ let char_of_tile = function
   | Trees -> ([black;on_green],'l')
 
 
-let input_map_overlay (style,_) (x,y) (input:Input.t) gs = 
+let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs = 
   match input.act with
   | Input.Placing (t,(xp,yp)) ->
     begin match (xp = x,yp = y) with
@@ -39,8 +39,15 @@ let input_map_overlay (style,_) (x,y) (input:Input.t) gs =
         if can_place_building_at t (xp,yp) gs then
           Some (s,c)
         else Some (s@[on_red],c)
-      | (true,false) -> Some (style@[white], '|')
-      | (false,true) -> Some (style@[white], '-')
+      | (true,false) -> Some (current_style@[white], '|')
+      | (false,true) -> Some (current_style@[white], '-')
+      | _ -> None
+    end
+  | Input.Inspecting (xp,yp) ->
+    begin match (xp = x,yp = y) with
+      | (true,true) -> Some (current_style,current)
+      | (true,false) -> Some (current_style@[white], '|')
+      | (false,true) -> Some (current_style@[white], '-')
       | _ -> None
     end
   | _ -> None

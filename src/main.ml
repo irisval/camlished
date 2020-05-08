@@ -13,6 +13,7 @@ let char_to_command c =
   | "b" -> Input.PlaceBuilding
   | "c" -> Input.Cancel
   | ";" -> Input.Select
+  | "i" -> Input.Inspect
   | "w" -> Input.Up
   | "s" -> Input.Down
   | "a" -> Input.Left
