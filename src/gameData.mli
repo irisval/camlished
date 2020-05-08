@@ -17,7 +17,7 @@ type bounds = int * int
 type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
 
 (** The type of building placement rules *)
-type placement_rule_type = On | Next | Only
+type placement_rule_type = On | Next
 
 (** The placement cost of a building *)
 type requirement = {
@@ -61,7 +61,7 @@ type building_properties = {
   max_residents: int;
   max_workers: int;
   requirements: requirement list;
-  placement_rule: placement_rule list;
+  placement_rules: placement_rule list;
   consumption_generation: consumption_generation list;
   active_generation: active_generation list;
   storages: storage list;
@@ -91,9 +91,13 @@ val max_residents : building_type -> t -> int
     that can work in building [b] in game data [dt] *)
 val max_workers : building_type -> t -> int
 
-(** [placement_requirements b dt] is the list of placement costs, which are
-    the resource types and amounts, to build [b] in game data [dt] *)
-val placement_requirements : building_type -> t -> requirement list
+(** [rsc_requirements b dt] is the list of resource requirements, which are
+    the resource types and amounts needed to build [b] in game data [dt] *)
+val rsc_requirements : building_type -> t -> requirement list
+
+(** [placement_requirements b dt] is the list of placement requirements, which are
+    the rules needed to build [b] in game data [dt] *)
+val placement_requirements : building_type -> t -> placement_rule list
 
 (** [active_generation b dt] gives the active generation details of a building *)
 val active_generation : building_type -> t -> active_generation list

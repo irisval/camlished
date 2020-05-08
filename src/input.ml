@@ -56,7 +56,7 @@ let receive_placing c btype (x,y) t gs =
     | Right -> (x+1,y)
     | _ -> (x,y)
   in
-  let can_place = Gamestate.can_place_building btype (x,y) gs in
+  let can_place = Gamestate.can_place_building_at btype (x,y) gs in
   let gs' = match c with
     | Select ->
       if can_place then Gamestate.place_building btype (x,y) gs else gs

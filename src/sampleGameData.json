@@ -217,7 +217,7 @@
       "max workers": 7,
       "requirements": [],
       "placement rule": [{
-        "type": "only",
+        "type": "on",
         "tile": "grass"
       }],
       "consumption generation": [],

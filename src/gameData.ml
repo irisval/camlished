@@ -6,7 +6,7 @@ type building_type = string
 type bounds = int * int
 
 type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
-type placement_rule_type = On | Next | Only
+type placement_rule_type = On | Next
 
 
 type requirement = {
@@ -42,7 +42,7 @@ type building_properties = {
   max_residents: int;
   max_workers: int;
   requirements: requirement list;
-  placement_rule: placement_rule list;
+  placement_rules: placement_rule list;
   consumption_generation: consumption_generation list;
   active_generation: active_generation list;
   storages: storage list;
@@ -77,7 +77,6 @@ let string_of_tile_type = function
 let placement_rule_of_string = function
   | "on" -> On
   | "next" -> Next
-  | "only" -> Only
   | _ -> failwith "Invalid string to placement rule conversion"
 
 (* read from json *)
@@ -116,7 +115,7 @@ let json_building j = {
   max_residents = j |> member "max residents" |> to_int;
   max_workers = j |> member "max workers" |> to_int;
   requirements = j |> member "requirements" |> to_list |> List.map json_requirements;
-  placement_rule = j |> member "placement rule" |> to_list |> List.map json_placement;
+  placement_rules = j |> member "placement rule" |> to_list |> List.map json_placement;
   consumption_generation = j |> member "consumption generation" |> to_list |> List.map json_consumption_gen;
   active_generation = j |> member "active generation" |> to_list |> List.map json_active_gen;
   storages = j |> member "storage" |> to_list |> List.map json_storage;
@@ -152,8 +151,11 @@ let max_residents b dt =
 let max_workers b dt =
   (properties b dt).max_workers
 
-let placement_requirements b dt =
+let rsc_requirements b dt =
   (properties b dt).requirements
+
+let placement_requirements b dt =
+  (properties b dt).placement_rules
 
 let active_generation b dt = 
   (properties b dt).active_generation

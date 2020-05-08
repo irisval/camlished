@@ -7,11 +7,19 @@
         },
         {
             "name":"wood",
-            "amount":12
+            "amount":40
         },
         {
             "name":"ore",
             "amount":2
+        },
+        {
+            "name":"metal",
+            "amount":6
+        },
+        {
+            "name":"planks",
+            "amount":11
         }
     ],
     "buildings":[
@@ -194,6 +202,11 @@
             "tile type":"forest",
             "x coordinate":6,
             "y coordinate":4
+        },
+        {
+            "tile type":"mountain",
+            "x coordinate":3,
+            "y coordinate":3
         }
     ]
 }

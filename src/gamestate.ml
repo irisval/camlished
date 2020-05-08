@@ -2,7 +2,7 @@ open GameData
 open Yojson.Basic.Util
 open Printf
 
-exception OccupiedTile
+
 exception IllegalWorkerAssignment
 exception IllegalResourceType
 exception IllegalResourceCollection
@@ -72,12 +72,10 @@ let user_data j = {
       "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
     with
     | Yojson.Json_error _ -> failwith "Can't find file"
-
 }
 
 let from_json j = try user_data j
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
-
 
 let resources_to_json (rsc_lst: resource list) : string = 
   let convert = function
@@ -144,8 +142,8 @@ let update_rsc (u_rsc : resource) st : t =
   | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
   {st with resources = update st.resources []}
 
-let get_rsc_amt rsc st : int =
-  match List.find_opt (fun r -> r.id = rsc.id) st.resources with 
+let get_rsc_amt rt st : int =
+  match List.find_opt (fun r -> r.id = rt) st.resources with 
   | Some rsc -> rsc.amount
   | None -> 0
 
@@ -153,11 +151,10 @@ let get_rsc_amt rsc st : int =
 let building_consumption_gen (bt:GameData.building_type) st = 
   let gen_lst = GameData.consumption_generation bt st.game_data in
   List.fold_left (fun st' g ->
-    let input = {id=g.input_resource; amount=g.input_amount} in 
-      if (get_rsc_amt input st') >= g.input_amount then
-        let input_st' = (update_rsc {input with amount=(g.input_amount* -1)} st') in 
-        (update_rsc {id=g.output_resource; amount=g.output_amount} input_st')
-      else st')
+    if (get_rsc_amt g.input_resource st') >= g.input_amount then
+    let input_st' = (update_rsc {id=g.input_resource; amount=g.input_amount * -1} st') in 
+      (update_rsc {id=g.output_resource; amount=g.output_amount} input_st')
+    else st')
   st gen_lst
 
 
@@ -167,13 +164,13 @@ let building_active_gen (bt:GameData.building_type) st =
     update_rsc {id=g.resource; amount=g.output} st') st gen_lst 
  
 
-(** [step_buildings buildings resources] is [resources] after stepping
-    all buildings using [resources] *)
+(** [step_buildings buildings resources] is the state with updated resources
+  after stepping through all of the buildings and executing their resource
+  generation. *)
 let step_buildings st =
     List.fold_left (fun st' b -> 
       let active_st' = building_active_gen b.building_type st' in 
         building_consumption_gen b.building_type active_st') st st.buildings
-
 
 let turns st =
   st.turn_id
@@ -224,19 +221,42 @@ let is_empty coor st =
 let make_building building_type coor =
   {building_type = building_type; coordinates = coor; workers = []; residents = []}
 
-let place_building building_type coor st =
-  if is_empty coor st |> not then raise OccupiedTile
-  else let b = make_building building_type coor in
+
+let meets_rsc_reqs bt st = 
+  let req_lst = GameData.rsc_requirements bt st.game_data in
+  let under = List.filter (fun (r:requirement) -> 
+    (get_rsc_amt r.resource st) <= r.amount) req_lst in 
+  List.length under = 0
+
+let meets_placement_reqs bt coor st =
+  let req_lst = GameData.placement_requirements bt st.game_data in 
+  let under = List.filter (fun (p:placement_rule) -> 
+      let t = p.tile in
+      match p.rule_type with 
+      | On ->  tile_rep_at coor st <> t
+      | Next -> let x = fst coor in let y = fst coor in 
+                (tile_rep_at (x-1, y) st <> t) && (tile_rep_at (x+1,y) st <> t)
+                 && (tile_rep_at (x,y-1) st <> t) && (tile_rep_at (x,y+1) st <> t)
+    ) req_lst in 
+  List.length under = 0
+
+let is_valid_bt bt st = 
+  let b = List.find_opt (fun b -> b = bt) (GameData.building_types st.game_data) in 
+  match b with 
+  | Some _ -> true
+  | None -> false
+
+let can_place_building_at bt coor st =
+  is_valid_bt bt st && is_empty coor st 
+  && meets_placement_reqs bt coor st && meets_rsc_reqs bt st
+
+let place_building bt coor st =
+  let b = make_building bt coor in
     {turn_id = st.turn_id;
      resources = st.resources;
      buildings = b::st.buildings;
      tiles = st.tiles;
      game_data = st.game_data}
-
-(* let meets_requirements st building_type st =  *)
-
-let can_place_building building_type coor st =
-  is_empty coor st
 
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
@@ -320,19 +340,27 @@ let step st = { (step_buildings st) with turn_id = st.turn_id + 1}
 let get_bounds st = GameData.get_bounds st.game_data
 
 let get_test_building =
-  {building_type= "tent"; coordinates=(5,6);workers=[];residents=["john doe"; "jane doe"]}
+ {building_type= "tent"; coordinates=(5,6);workers=[];residents=["john doe"; "jane doe"]}
 
 let get_test_tile = GameData.Water
 
-let get_test_placed_building =
-  {building_type= "silo"; coordinates=(0,0);workers=[];residents=[]}
+let get_test_placed_buildings =
+  [{building_type= "tent"; coordinates=(0,0);workers=[];residents=[]};
+  {building_type= "quarry"; coordinates=(2,2);workers=[];residents=[]};
+  {building_type= "quarry"; coordinates=(3,3);workers=[];residents=[]};
+  {building_type= "fishing dock"; coordinates=(9,9);workers=[];residents=[]}]
 
 let get_test_food = {id="food";amount=2}
-
 let get_test_planks = {id="planks";amount=3}
-
 let get_test_wood = {id="wood";amount=3}
-
 let get_test_metal = {id="metal";amount=0}
-
 let get_test_ore = {id="ore";amount=0}
+let get_test_stone = {id="stone";amount=3}
+
+
+let get_test_food_type = "food"
+let get_test_planks_type = "planks"
+let get_test_wood_type = "wood"
+let get_test_metal_type = "metal"
+let get_test_ore_type = "ore"
+let get_test_stone_type = "stone"

@@ -23,40 +23,34 @@ let resource_types: (resource_type list) =
    "ore"; "metal"]
 
 
-let unwrap_building_test j = 
-  match (get_building_at (5, 6) j) with 
+let unwrap_placement_test j coor = 
+  match (get_building_at coor j) with 
   | Some b -> b
   | None -> failwith "building not found"
 
-let unwrap_sawmill_test j  = 
-  match (get_building_type_at (3, 2) j) with 
+let matches_test_building b = 
+  match List.find_opt (fun b'-> b = b') get_test_placed_buildings with 
+  | Some _ -> true 
+  | None -> false 
+
+let unwrap_test_building j coor = 
+  match (get_building_type_at coor j) with 
   | Some b -> b
   | None -> failwith "building not found"
 
-let unwrap_forge_test j  = 
-  match (get_building_type_at (3, 1) j) with 
-  | Some b -> b
-  | None -> failwith "building not found"
-
-let unwrap_fdock_test j  = 
-  match (get_building_type_at (6, 1) j) with 
-  | Some b -> b
-  | None -> failwith "building not found"
 
 let unwrap_building_type_test2 j  = 
   match (get_building_type_at (10, 12) j) with 
   | Some _ -> false
   | None -> true
 
-let unwrap_tile j  = 
-  match (get_tile_at (1, 2) j) with 
+
+let unwrap_tile j coor = 
+  match (get_tile_at coor j) with 
   | Some t -> t
   | None -> failwith "tile not found"
 
-let unwrap_building_placement_test j = 
-  match (get_building_at (0, 0) j) with 
-  | Some b -> b
-  | None -> failwith "building not found"
+
 
 (** [unwrap_building b] is [b] but not optional *)
 let unwrap_building b =
@@ -72,8 +66,8 @@ let unassigned_workers = ["jane doe"]
 let sawmill_workers = ["john doe"; "martha"]
 
 let state_tests = [
-  "Checking tile parsing" >:: (fun _ ->
-      assert_equal  (j |> Gamestate.get_tiles |> List.length) 22);
+  (* "Checking tile parsing" >:: (fun _ ->
+      assert_equal  (j |> Gamestate.get_tiles |> List.length) 22); *)
   "Checking get building types" >:: (fun _ ->
       assert (cmp_set_like_lists
                 (j |> get_game_data |> GameData.building_types) (building_types)));
@@ -81,41 +75,66 @@ let state_tests = [
       assert (cmp_set_like_lists
                 (j |> get_game_data |> GameData.resource_types) (resource_types)));
   "Checking get building at" >:: (fun _ ->
-      assert_equal (j |> unwrap_building_test) get_test_building);
+      assert_equal  (unwrap_placement_test j (5,6)) get_test_building);
   "Checking get building type at" >:: (fun _ ->
-      assert_equal (j |> unwrap_sawmill_test) "sawmill");
+      assert_equal (unwrap_test_building j (3, 2)) "sawmill");
   "Checking empty get building type at" >:: (fun _ ->
       assert (j |> unwrap_building_type_test2));
   "Checking get tile at" >:: (fun _ ->
-      assert_equal (j |> unwrap_tile) get_test_tile);
-  "Checking is empty" >:: (fun _ ->
+      assert_equal (unwrap_tile j (1, 2)) get_test_tile); 
+  "Checking  is empty" >:: (fun _ ->
       assert (is_empty (15, 6) j));
-  (* "Checking make building" >::
-     (fun _ -> (assert_equal ((place_building "Silo" (0, 0) j) |> unwrap_building_placement_test)
-               get_test_placed_building)); *)
+]
+
+let building_placement_tests = [
+  "Checking the successful placement of a building with no requirements" >::
+     (fun _ -> let b = place_building "tent" (0, 0) j in 
+        assert (matches_test_building (unwrap_placement_test b (0, 0))));
+  "Checking the failed placement of a building on an occupied tile" >:: (fun _ -> 
+       assert (((is_empty (7, 5) j) |> not) && (can_place_building_at "tent" (7, 5) j) |> not));
+  "Checking the successful placement of a building that meets all resource reqs" >::
+     (fun _ -> let b = place_building "quarry" (2, 2) j in 
+    assert (matches_test_building (unwrap_placement_test b (2, 2))));
+  "Checking the failed placement of a building that does not meet all resource reqs" >::
+     (fun _ -> assert (((meets_rsc_reqs "forge" j) |> not) 
+            && (can_place_building_at "quarry" (6, 6) j) |> not));
+  "Checking the placement of a building that meets the 'on tile' placement req" >::
+     (fun _ -> let b = place_building "quarry" (3, 3) j in 
+    assert (matches_test_building (unwrap_placement_test b (3, 3))));
+  "Checking the failed placement of a building that does not meet the 'on tile' req"
+       >:: (fun _ -> assert (((meets_placement_reqs "quarry" (6, 4) j) |> not) 
+        && (can_place_building_at "tent" (6, 4) j) |> not));
+  "Checking the placement of a building that meets the 'next to tile' placement req" >::
+     (fun _ -> let b = place_building "fishing dock" (9, 9) j in 
+    assert (matches_test_building (unwrap_placement_test b (9, 9))));
+  "Checking the failed placement of a building that doesn't meet the
+     'next to tile' placement req" >:: (fun _ -> 
+    assert (((meets_placement_reqs "fishing dock" (6, 4) j) |> not) 
+        && (can_place_building_at "fishing dock" (6, 4) j) |> not));
+  "Checking the failed placement of a building that doesn't type that doesn't exist"
+   >:: (fun _ ->  assert ((can_place_building_at "skyscraper" (6, 4) j) |> not));
 ]
 
 let resource_tests = [
   "Correctly update already existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt get_test_food (update_rsc get_test_food j)) 
+    assert_equal (get_rsc_amt get_test_food_type (update_rsc get_test_food j)) 
     39);
   "Correctly add a non-existing resource" >:: (fun _ ->
     assert_equal 
-    ((update_rsc get_test_planks j) |> get_user_resources |> List.length) 4);
+    ((update_rsc get_test_stone j) |> get_user_resources |> List.length) 6);
   "Correctly update a non-existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt get_test_planks (update_rsc get_test_planks j)) 
+    assert_equal (get_rsc_amt get_test_stone_type (update_rsc get_test_stone j)) 
     3);
   "Correctly consume resource input and generate resource output"  >:: (fun _ ->
-    let st' = (building_consumption_gen (j |> unwrap_sawmill_test) j) in 
-    assert ((get_rsc_amt get_test_wood st' ) = 11 && (get_rsc_amt  get_test_planks st') = 5));
+    let st' = (building_consumption_gen (unwrap_test_building j (3, 2)) j) in 
+    assert ((get_rsc_amt get_test_wood_type st' ) = 39 && (get_rsc_amt  get_test_planks_type st') = 16));
   "Buiding generates no output when there's insufficient resource input"  >:: (fun _ ->
-    let st' = (building_consumption_gen (j |> unwrap_forge_test) j) in 
-    assert ((get_rsc_amt get_test_ore st') = 2 && (get_rsc_amt get_test_metal st') = 0));
+    let st' = (building_consumption_gen (unwrap_test_building j (3, 1)) j) in 
+    assert ((get_rsc_amt get_test_ore_type st') = 2 && (get_rsc_amt get_test_metal_type st') = 6));
   "Building actively generates resource correctly" >:: (fun _ ->
-    let st' = (building_active_gen (j |> unwrap_fdock_test) j) in 
-    assert ((get_rsc_amt get_test_food st') = 42 && 
-            (st' |> get_user_resources |> List.length) = 3));
-    
+    let st' = (building_active_gen (unwrap_test_building j (6, 1)) j) in 
+    assert ((get_rsc_amt get_test_food_type st') = 42 && 
+            (st' |> get_user_resources |> List.length) = 5));
 ]
 
 let population_tests = [
@@ -170,6 +189,7 @@ let population_tests = [
 
 let tests = [
   state_tests;
+  building_placement_tests;
   resource_tests;
   population_tests;
 ]
