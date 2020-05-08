@@ -166,8 +166,11 @@ let place_building building_type coor st =
      tiles = st.tiles;
      game_data = st.game_data}
 
-let can_place_building building_type coor st = 
+let can_place_building_at building_type coor st = 
   is_empty coor st
+
+let can_place_building building_type st = 
+  true
 
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
@@ -243,3 +246,10 @@ let get_test_placed_building =
   {building_type= "Silo"; coordinates=(0,0);workers=[];residents=[]}
 
 let get_turn gs = gs.turn_id
+
+(* let init_state = 
+   let tiles = MapGenerator.generate (GameData.get_bounds game_data)
+            |>List.map (fun (x:MapGenerator.tile) -> {
+                  name = x.name;
+                  coordinates = x.coordinates
+                }) in *)

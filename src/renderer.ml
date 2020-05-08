@@ -30,13 +30,17 @@ let char_of_tile = function
   | Trees -> ([black;on_green],'l')
 
 
-let input_map_overlay (x,y) (input:Input.t) _ = 
+let input_map_overlay (style,_) (x,y) (input:Input.t) gs = 
   match input.act with
-  | Input.Placing (_,(xp,yp)) ->
+  | Input.Placing (t,(xp,yp)) ->
     begin match (xp = x,yp = y) with
-      | (true,true) -> Some ([white;on_magenta], ' ')
-      | (true,false) -> Some ([white;on_green], '|')
-      | (false,true) -> Some ([white;on_green], '-')
+      | (true,true) ->
+        let (s,c) = char_of_building t in
+        if can_place_building_at t (xp,yp) gs then
+          Some (s,c)
+        else Some (s@[on_red],c)
+      | (true,false) -> Some (style@[white], '|')
+      | (false,true) -> Some (style@[white], '-')
       | _ -> None
     end
   | _ -> None
@@ -44,15 +48,16 @@ let input_map_overlay (x,y) (input:Input.t) _ =
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
 let char_at pos input gs =
-  let over = input_map_overlay pos input gs in
+  let base = match Gamestate.get_building_type_at pos gs
+    with
+    | Some b -> char_of_building b
+    | None -> char_of_tile (Gamestate.tile_rep_at pos gs)
+  in
+  let over = input_map_overlay base pos input gs in
   match over with 
   | Some b -> b
-  | None ->
-    begin match Gamestate.get_building_type_at pos gs
-      with
-      | Some b -> char_of_building b
-      | None -> char_of_tile (Gamestate.tile_rep_at pos gs)
-    end
+  | None -> base
+
 
 
 (**[repeat_list n x] is a list of [x] repeated [n] times. *)
@@ -174,7 +179,12 @@ let add_building_picker n y gs arr =
   add_text 0 y
     (types
      |> List.map
-       (fun e -> style_string (if e = selected then [Inverse] else []) e)
+       (fun e ->
+          let style =
+            (if e = selected then [Inverse] else [])
+            @(if can_place_building e gs then [] else [red])
+          in style_string style e
+       )
      |> List.fold_left (fun acc b -> acc@([],' ')::b) []
     )
     arr
