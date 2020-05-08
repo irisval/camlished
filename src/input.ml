@@ -30,7 +30,11 @@ let starting = {
 }
 
 let controls_text t = match t.act with
-  | Observing -> "Space: advance time | i: Inspect | b: Place building"
+  | Observing ->
+    "Space: end turn | I: inspect | B: place building | Q: quit"
+  | Placing _ -> "W/A/S/D: move | C: cancel | ;: select"
+  | Inspecting _ -> "W/A/S/D: move | C: cancel"
+  | BuildingPicker _ -> "W/D: pick | C: cancel | ;: select"
   | _ -> ""
 
 let bad_command_text = "Unrecognized command."

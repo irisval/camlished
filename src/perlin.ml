@@ -1,9 +1,7 @@
 (* TODO: Based on https://flafla2.github.io/2014/08/09/perlinnoise.html *)
 
-
 (**[lerp a b x] is linear interpolation. *)
 let lerp a b x = a +. x*.(b-.a)
-
 
 let perm = Array.of_list [
     151;160;137;91;90;15;            

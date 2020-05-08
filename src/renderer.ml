@@ -220,6 +220,8 @@ let draw (input:Input.t) gs =
   output := 
     Array.append (Array.make 1 []) !output
     |> add_resources (map_right + 3) 1 gs
+    |> add_text (width/2 - 4) 0 (style_string [Bold] "Camlished")
+    |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
     |> add_turn 0 0 gs
     |> add_message (map_bottom) [] input.msg
     |> (
