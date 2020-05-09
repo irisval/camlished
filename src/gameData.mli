@@ -83,6 +83,12 @@ val building_types : t -> building_type list
 (** [resource_types dt] is the list of resource types in [d] *)
 val resource_types : t -> resource_type list
 
+(** [birth_rate dt] is the natural birth rate in [dt] *)
+val birth_rate : t -> float
+
+(** [death_rate dt] is the natural death rate in [dt] *)
+val death_rate : t -> float
+
 (** [max_residents b dt] is the maximum number of residents
     that can live in building [b] in game data [dt] *)
 val max_residents : building_type -> t -> int

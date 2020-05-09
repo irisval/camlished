@@ -238,6 +238,8 @@ let place_building building_type coor st =
 let can_place_building building_type coor st =
   is_empty coor st
 
+(* ====== Block: state population/worker assignment ====== *)
+
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
 
@@ -304,6 +306,60 @@ let building_residents b =
 
 let building_workers b =
   b.workers
+
+(* life & death *)
+
+let max_population st =
+  List.fold_left (fun acc b ->
+      acc + (max_residents b.building_type st.game_data)) 0 st.buildings
+
+let living_residents bl : person list =
+  List.fold_left (fun acc b -> acc @ b.residents) [] bl
+
+let remove_ppl p l : person list =
+  List.filter (fun _ -> Random.float 1.0 > p) l
+
+let kill_residents b st : building =
+  let residents' = remove_ppl (death_rate st.game_data) b.residents in
+  {b with residents = residents'}
+
+let clean_dead_workers b living : building =
+  let is_alive w = List.mem w living in
+  {b with workers = List.filter is_alive b.workers}
+
+let step_deaths bl st : building list =
+  let kr = (fun b -> kill_residents b st) in
+  let b_culled = List.map kr bl in
+  let living = living_residents b_culled in
+  let cdw = (fun b -> clean_dead_workers b living) in
+  List.map cdw b_culled
+
+let new_residents p l : person list =
+  let maybe_birth = (fun acc _ ->
+    if Random.float 1.0 > p then acc
+    else (Names.rand_fullname ())::acc) in
+  List.fold_left maybe_birth [] l
+
+let baby_to_building name b st : (bool * building) =
+  if List.length b.residents < max_residents b.building_type st.game_data then
+    (true, {b with residents = name::b.residents})
+  else
+    (false, b)
+
+(*let distribute_births babies num bl st =
+  if num <= 0 then*)
+
+let step_births bl st : building list =
+  let babies = (fun b -> new_residents (birth_rate st.game_data) b.residents) in
+  let total_baby = List.map babies bl |> List.flatten in
+  let max_num_new = min (List.length total_baby)
+    ((max_population st) - (living_residents bl |> List.length)) in
+  bl
+
+(** [step_population st] is the updated buildings after stepping for pop *)
+let step_population st : building list =
+  let after_deaths = step_deaths st.buildings st in
+  after_deaths
 
 let alive st = (population st = 0) |> not
 

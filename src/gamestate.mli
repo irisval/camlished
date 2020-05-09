@@ -9,7 +9,6 @@ type person = string
 
 (**  The type representing a building*)
 type building
-
 (** The type representing a tile *)
 type tile
 
@@ -139,6 +138,27 @@ val building_residents : building -> person list
 
 (** [building_workers b] is the list of workers at [b] *)
 val building_workers : building -> person list
+
+(** [max_population st] is the sum of max residents of each building in [st] *)
+val max_population : t -> int
+
+(** [remove_ppl p l] is [l] randomly removing people with probability [p] *)
+val remove_ppl : float -> person list -> person list
+
+(** [kill_residents b st] is [b] after [kill_some] with death rate from [st] *)
+val kill_residents : building -> t -> building
+
+(** [clean_dead_workers b living] is [b] after removing workers that are no
+    longer in the [living] *)
+val clean_dead_workers : building -> person list -> building
+
+(** [step_deaths bl st] is [bl] after culling and cleaning each building.
+    [st] is only used for its game data -> death chance *)
+val step_deaths : building list -> t -> building list
+
+(** [new_residents p l] is the list of babies possibly born to people in [l]
+    with probability [p] each *)
+val new_residents : float -> person list -> person list
 
 (** [alive st] is if there are still living people in [st] *)
 val alive : t -> bool
