@@ -154,6 +154,10 @@ val max_population : t -> int
 (** [cap_list_length n l] is [l] with at most [n] elements, from front *)
 val cap_list_length : int -> 'a list -> 'a list
 
+(** [living_residents bl] is the list of people living in the buildings in [bl].
+    Intended for use by life and death *)
+val living_residents : building list -> person list
+
 (** [remove_ppl p l] is [l] randomly removing people with probability [p] *)
 val remove_ppl : float -> person list -> person list
 
@@ -171,6 +175,20 @@ val step_deaths : building list -> t -> building list
 (** [new_residents p l] is the list of babies possibly born to people in [l]
     with probability [p] each *)
 val new_residents : float -> person list -> person list
+
+(** [baby_to_building name b st] is a pair [(bool, b)] with [b] after trying to
+    add [name] to its list of residents. [bool] is [true] if there was space and
+    the operation succeeded, [false] otherwise. *)
+val baby_to_building : string -> building -> t -> bool * building
+
+(** [dist_babies babies st b_arr] is the building array after distributing
+    [babies] randomly to each building if it has space. Requires that the
+    buildings collectively have enough space remaining for the babies. *)
+val dist_babies : string list -> t -> building array -> building array
+
+(** [step_births bl st] is [bl] after creating new residents and assigning them
+    to buildings as residents if necessary. *)
+val step_births : building list -> t -> building list
 
 (** [alive st] is if there are still living people in [st] *)
 val alive : t -> bool

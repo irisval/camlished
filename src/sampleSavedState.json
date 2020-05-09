@@ -102,6 +102,13 @@
             "residents":[
 
             ]
+        },
+        {
+            "building type":"log cabin",
+            "x coordinate":8,
+            "y coordinate":2,
+            "workers":[],
+            "residents":[]
         }
     ],
     "tiles":[

@@ -125,11 +125,12 @@ let save (st:t) =
 
 (* ====== Block: state operations ====== *)
 let initial_state (tl: tile list) = 
-  {turn_id=0; resources= []; buildings=[]; tiles=tl; game_data= 
-                                                       try
-                                                         "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
-                                                       with
-                                                       | Yojson.Json_error _ -> failwith "Error parsing game data file."
+  {turn_id=0; resources= []; buildings=[]; tiles=tl;
+   game_data= 
+     try
+       "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+     with
+     | Yojson.Json_error _ -> failwith "Error parsing game data file."
   }
 
 let turns st =
@@ -358,7 +359,7 @@ let building_active_gen (b:building) st =
     generation. *)
 let step_buildings st =
   List.fold_left (fun st' b -> 
-      let active_st' = building_active_gen b st' in 
+      let active_st' = building_active_gen b st' in
       building_consumption_gen b active_st') st st.buildings
 
 (* life & death *)

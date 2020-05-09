@@ -57,6 +57,11 @@ let unwrap_building_type_test2 j  =
   | Some _ -> false
   | None -> true
 
+(** [print_b_residents bl] is the resident lists of each [b] in [bl], printed *)
+let print_b_residents bl =
+  List.iter (fun b ->
+    print_string "["; List.iter (fun l -> print_string (l ^ ",")) (building_residents b);
+    print_string "]") bl
 
 let tent_1_residents = ["john doe"; "jane doe"]
 let tent_2_residents = ["martha"]
@@ -186,7 +191,7 @@ let resource_tests = [
 ]
 
 let population_tests = [
-  "Population is 3" >:: (fun _ ->
+  "Population is 7" >:: (fun _ ->
       (assert_equal (j |> population) 7));
   "List of all residents" >:: (fun _ ->
       assert (cmp_set_like_lists (Gamestate.all_residents j) (all_residents)));
@@ -235,12 +240,45 @@ let population_tests = [
 ]
 
 let life_death_tests = [
+  "Max pop is 2 cap * 2 tents + 6 cap * 1 log cabin = 10" >:: (fun _ ->
+      assert_equal (max_population j) 10);
   "Cap list length longer" >:: (fun _ ->
       assert_equal (cap_list_length 10 [1; 2; 3] |> List.length) 3);
   "Cap list length shorter" >:: (fun _ ->
       assert_equal (cap_list_length 2 [1; 2; 3] |> List.length) 2);
   "Cap list length is the front" >:: (fun _ ->
       assert_equal (cap_list_length 2 [1; 2; 3]) [1; 2]);
+  "Remove people with 50% chance" >:: (fun _ ->
+      Random.init 15; assert_equal
+        (unwrap_building j (5, 6) |> building_residents |> remove_ppl 0.5)
+        (["john doe"]));
+  (* the below tests assume death rate and birth rate are set to 0.5 *)
+  "Step deaths, gone from residents" >:: (fun _ ->
+      Random.init 11;
+      let bl = get_buildings j in
+      let bl' = step_deaths bl j in
+      assert_equal (List.nth bl' 4 |> building_residents) (["jane doe"]));
+  "Step deaths, gone from workers" >:: (fun _ ->
+      Random.init 11;
+      let bl = get_buildings j in
+      let bl' = step_deaths bl j in
+      assert_equal (List.nth bl' 6 |> building_workers) (["martha"]));
+  "Births exist" >:: (fun _ ->
+      Random.init 1; assert_equal (* found by print, be consistent with seed*)
+        (unwrap_building j (5, 6) |> building_residents |> new_residents 0.5)
+        (["Wasta Dehu"; "Yulrofo Xurkuhu"]));
+  "Add name to building with no space" >:: (fun _ ->
+      let b = unwrap_building j (5, 6) in
+      assert_equal (baby_to_building "Name" b j) (false, b));
+  "Add name to building with yes space" >:: (fun _ ->
+      let b = unwrap_building j (7, 5) in
+      assert_equal (baby_to_building "Name" b j |> fst) (true));
+  "Step births" >:: (fun _ ->
+      Random.init 1;
+      let bl = get_buildings j in
+      let bl' = step_births bl j in
+      assert_bool "New pop > Old" ((bl' |> living_residents |> List.length) >
+                                   (bl |> living_residents |> List.length)));
 ]
 
 let tests = [
