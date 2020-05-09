@@ -61,8 +61,8 @@ let controls_text t =
       [
         ("W/A/S/D","move");
         ("C","cancel");
-        ("Y","assign workers");
-        ("U","unassign workers")
+        ("Y","add workers");
+        ("U","remove workers")
       ]
     | BuildingPicker _ ->
       [
@@ -71,10 +71,11 @@ let controls_text t =
         (";","select")
       ]
   in
+  let write (l,r) = l^" : "^r in
   match pairs with
   | [] -> ""
-  | (hl,hr)::k ->
-    List.fold_left (fun acc (l,r) -> acc^" | "^l^" : "^r) (hl^" : "^hr) k
+  | h::k ->
+    List.fold_left (fun acc p -> acc^" | "^write p) (write h) k
 
 let wrap max n =
   if max = 0 then 0 else
@@ -86,7 +87,52 @@ let bad_command_text = "Unrecognized command."
 let center_of_map gs = match Gamestate.get_bounds gs with
   | (x,y) -> (x/2, y/2)
 
-let get_inspect_msg (x,y) gs = "hi"
+
+let get_inspect_msg pos gs =
+  let gd = Gamestate.get_game_data gs in
+  let building_msg (b:Gamestate.building) =
+    let max_workers = GameData.max_workers b.building_type gd in
+    let current_workers = List.length b.workers in
+    b.building_type^": "^
+    "producing"
+    (* ^"TODO" *)
+    ^" per turn."
+    ^" "
+    ^"Max workers: "
+    ^string_of_int max_workers
+    ^". "
+    ^"Current workers: "
+    ^string_of_int current_workers
+    ^"." 
+  in
+  match Gamestate.get_building_at pos gs with
+  | Some b -> building_msg b
+  | None -> "Nothing special here"
+
+let get_building_pick_msg btype gs =
+  let gd = Gamestate.get_game_data gs in
+  let placement_costs = GameData.placement_cost btype gd in
+  let write (b:GameData.placement_cost) =
+    (string_of_int b.cost)^" "^b.resource in
+  "Requires: "
+  ^ match placement_costs with
+  | [] -> "Nothing"
+  | h::k -> List.fold_left (fun acc b -> acc ^ ", " ^ write b) (write h) k
+
+let get_assign_workers_msg btype gs =
+  let gd = Gamestate.get_game_data gs in
+  let max_workers = GameData.max_workers btype gd in
+  "Max: " ^ (string_of_int max_workers)
+
+
+let get_adjust_workers_msg pos gs =
+  let btype= Option.get (Gamestate.get_building_type_at pos gs) in
+  let gd = Gamestate.get_game_data gs in
+  let max_workers = GameData.max_workers btype gd in
+  let b = Option.get (Gamestate.get_building_at pos gs) in
+  let current = List.length b.workers in
+  "Max: " ^ (string_of_int max_workers) ^
+  ", Current: " ^ (string_of_int current)
 
 let receive_observing c t msg_r gs =
   let gs' = match c with
@@ -195,7 +241,7 @@ let receive_adjust_workers c (state:adjust_workers_state) pos amt t msg_r gs =
     | None -> failwith "impossible" in
   let limit = match state with
     | Assign -> Gamestate.unassigned_workers gs |> List.length
-    | Unassign -> Gamestate.get_workers_at b |> List.length in
+    | Unassign -> List.length b.workers in
   let amt' = wrap limit (
       match c with
       | Up -> amt+1
@@ -233,10 +279,16 @@ let receive_command c t gs =
   begin match input.act with
     | Inspecting pos ->
       msg_r := get_inspect_msg pos gs
-    | BuildingPicker _ ->
-      msg_r := "Which type of building?"
+    | BuildingPicker n ->
+      let types = gs |> Gamestate.get_game_data |> GameData.building_types in
+      msg_r := get_building_pick_msg (List.nth types n) gs
     | Placing (PickLocation, _,_) ->
       msg_r := "Where will you put this building?"
+    | Placing (AssignWorkers _,btype,_) ->
+      msg_r := "How many workers should be assigned to this building?"
+               ^" "^get_assign_workers_msg btype gs 
+    | AdjustWorkers (_,pos,_) ->
+      msg_r := get_adjust_workers_msg pos gs
     | _ -> ()
   end;
   ( { input with msg = !msg_r },gs)

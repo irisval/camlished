@@ -8,7 +8,12 @@ type resource
 type person
 
 (**  The type representing a building*)
-type building
+type building = {
+  building_type: GameData.building_type;
+  coordinates: coordinates;
+  workers: person list;
+  residents: person list;
+}
 
 (** The type representing a tile *)
 type tile
@@ -120,6 +125,3 @@ val get_test_placed_building : building
 
 (**[get_turn gs] is the current turn in [gs]. *)
 val get_turn : t -> int
-
-(**[get_workers_at b] gives the list of workers in [b].*)
-val get_workers_at : building -> person list

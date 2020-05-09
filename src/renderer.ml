@@ -196,8 +196,14 @@ let add_building_picker n y gs arr =
     )
     arr
 
-let add_worker_setter y amt arr =
-  let txt = "Workers: "^(string_of_int amt) in
+let add_worker_setter act y amt arr =
+  let label = match act with
+    | Input.AdjustWorkers (Unassign,_,_) -> "Remove"
+    | AdjustWorkers (Assign,_,_)
+    | Placing (AssignWorkers _,_,_) -> "Add"
+    | _ -> failwith "impossible"
+  in
+  let txt = label^": "^(string_of_int amt) in
   add_text 0 y (style_string [yellow;Bold] txt) arr
 
 
@@ -237,7 +243,7 @@ let draw (input:Input.t) gs =
           add_building_picker n (map_bottom+1) gs o
         | AdjustWorkers (_,_, amt)
         | Placing (AssignWorkers amt, _, _) ->
-          add_worker_setter (map_bottom+1) amt o
+          add_worker_setter input.act (map_bottom+1) amt o
         | _ -> o
     );
   erase Screen;
