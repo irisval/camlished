@@ -382,7 +382,13 @@ let remove_ppl p l : person list =
   List.filter (fun _ -> Random.float 1.0 > p) l
 
 let kill_residents b st : building =
-  let residents' = remove_ppl (death_rate st.game_data) b.residents in
+  let death_chance =
+    if get_rsc_amt "food" st <= 0 then
+      death_rate_starving st.game_data
+    else
+      death_rate st.game_data
+  in
+  let residents' = remove_ppl death_chance b.residents in
   {b with residents = residents'}
 
 let clean_dead_workers b living : building =
@@ -430,10 +436,23 @@ let step_births bl st : building list =
   let b_arr = Array.of_list bl in
   dist_babies baby_capped st b_arr |> Array.to_list
 
-(** [step_population st] is the updated buildings after stepping for pop *)
-let step_population st : building list =
-  let after_deaths = step_deaths st.buildings st in
-  step_births after_deaths st
+let eat_food st : t =
+  let consumed food = {
+    food with
+    amount =
+      let new_amt = food.amount - (population st) in
+      if new_amt < 0 then 0 else new_amt
+  } in
+  let resources' = List.map (fun r ->
+      if r.id = "food" then consumed r else r) st.resources
+  in {st with resources = resources'}
+
+(** [step_population st] is [st] after stepping for pop *)
+let step_population st : t =
+  let st_after_eating = eat_food st in
+  let bl_after_deaths = step_deaths st.buildings st_after_eating in
+  let bl_after_births = step_births bl_after_deaths st_after_eating in
+  {st_after_eating with buildings = bl_after_births}
 
 let alive st = (population st = 0) |> not
 
@@ -443,7 +462,7 @@ let alive st = (population st = 0) |> not
    save s;
    s *)
 
-let step st = { (step_buildings st) with turn_id = st.turn_id + 1}
+let step st = { (step_buildings st |> step_population) with turn_id = st.turn_id + 1}
 
 
 (* ====== Block: test functions ====== *)

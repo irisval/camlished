@@ -11,6 +11,7 @@
   "height": 10,
   "birth rate": 0.5,
   "death rate": 0.5,
+  "death rate starving": 0.5,
   "building properties": [
     {
       "name": "tent",

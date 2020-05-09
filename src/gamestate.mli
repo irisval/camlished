@@ -190,6 +190,10 @@ val dist_babies : string list -> t -> building array -> building array
     to buildings as residents if necessary. *)
 val step_births : building list -> t -> building list
 
+(** [eat_food st] is [st] after the residents in the building list eat food, to
+    a minimum of 0 food *)
+val eat_food : t -> t
+
 (** [alive st] is if there are still living people in [st] *)
 val alive : t -> bool
 

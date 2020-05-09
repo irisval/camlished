@@ -91,6 +91,9 @@ val birth_rate : t -> float
 (** [death_rate dt] is the natural death rate in [dt] *)
 val death_rate : t -> float
 
+(** [death_rate_starving dt] is the death rate when 0 food in [dt] *)
+val death_rate_starving : t -> float
+
 (** [max_residents bt dt] is the maximum number of residents
     that can live in building [bt] in game data [dt] *)
 val max_residents : building_type -> t -> int

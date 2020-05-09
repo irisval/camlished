@@ -56,6 +56,7 @@ type game_data = {
   bounds: int * int;
   birth_rate: float;
   death_rate: float;
+  death_rate_starving: float;
 }
 
 type t = game_data
@@ -133,6 +134,7 @@ let game_data j = {
   bounds = (j |> member "width" |> to_int, j |> member "height" |> to_int);
   birth_rate = j |> member "birth rate" |> to_float;
   death_rate = j |> member "death rate" |> to_float;
+  death_rate_starving = j |> member "death rate starving" |> to_float;
 }
 
 let from_json j = try game_data j 
@@ -150,6 +152,9 @@ let birth_rate dt =
 
 let death_rate dt =
   dt.death_rate
+
+let death_rate_starving dt =
+  dt.death_rate_starving
 
 (* gamestate methods *)
 (** [properties b dt] are the building properties for [b] in [dt] *)

@@ -138,9 +138,9 @@ let resource_tests = [
   "Buiding generates no output when there's insufficient resource input"  >:: (fun _ ->
     let st' = (building_consumption_gen (unwrap_building j (3, 1)) j) in 
     assert ((get_rsc_amt get_test_ore_type st') = 2 && (get_rsc_amt get_test_metal_type st') = 6));
-  "Building does not generate resources if there are insufficient workers."  >:: (fun _ ->
+  "Building does not generate resources if there are insufficient workers. They ate some of it too." >:: (fun _ ->
     let st' = step j in 
-    assert ((get_rsc_amt get_test_food_type st') = 37));
+    assert ((get_rsc_amt get_test_food_type st') = 30));
   "Actively generate base output of wood when tree farm has min req workers" >:: (fun _ ->
     let st' = (building_active_gen (unwrap_building j (6, 4)) j) in 
     assert ((get_rsc_amt get_test_wood_type st') = 46));
@@ -279,6 +279,15 @@ let life_death_tests = [
       let bl' = step_births bl j in
       assert_bool "New pop > Old" ((bl' |> living_residents |> List.length) >
                                    (bl |> living_residents |> List.length)));
+  "Starting food is 37" >:: (fun _ ->
+      assert_equal (get_rsc_amt "food" j) (37));
+  "Food after 1 turn where 7 people eat is 30" >:: (fun _ ->
+      assert_equal (get_rsc_amt "food" (step j)) (30));
+  (* "Stepping many times food is min 0" >:: (fun _ ->
+      assert_equal (get_rsc_amt "food" (* fails because everyone dies first *)
+                      (step j |> step |> step |> step |> step |> step |> step |>
+                      step |> step |> step |> step)) 0 ~printer:string_of_int);
+     *)
 ]
 
 let tests = [
