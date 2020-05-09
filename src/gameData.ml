@@ -41,8 +41,10 @@ type building_properties = {
   name: building_type;
   max_residents: int;
   max_workers: int;
+  min_req_workers: int;
   requirements: requirement list;
   placement_rules: placement_rule list;
+  max_rsc_output: int;
   consumption_generation: consumption_generation list;
   active_generation: active_generation list;
   storages: storage list;
@@ -114,8 +116,10 @@ let json_building j = {
   name = j |> member "name" |> to_string;
   max_residents = j |> member "max residents" |> to_int;
   max_workers = j |> member "max workers" |> to_int;
+  min_req_workers = j |> member "min req workers" |> to_int;
   requirements = j |> member "requirements" |> to_list |> List.map json_requirements;
   placement_rules = j |> member "placement rule" |> to_list |> List.map json_placement;
+  max_rsc_output = j |> member "max rsc output" |> to_int;
   consumption_generation = j |> member "consumption generation" |> to_list |> List.map json_consumption_gen;
   active_generation = j |> member "active generation" |> to_list |> List.map json_active_gen;
   storages = j |> member "storage" |> to_list |> List.map json_storage;
@@ -139,29 +143,35 @@ let resource_types dt =
 
 (* gamestate methods *)
 (** [properties b dt] are the building properties for [b] in [dt] *)
-let properties b dt : building_properties =
-  List.find (fun bp -> bp.name = b) dt.building_properties
+let properties bt dt : building_properties =
+  List.find (fun bp -> bp.name = bt) dt.building_properties
 
 let get_bounds dt = 
   dt.bounds
 
-let max_residents b dt =
-  (properties b dt).max_residents
+let max_residents bt dt =
+  (properties bt dt).max_residents
 
-let max_workers b dt =
-  (properties b dt).max_workers
+let max_workers bt dt =
+  (properties bt dt).max_workers
 
-let rsc_requirements b dt =
-  (properties b dt).requirements
+let min_req_workers bt dt =
+  (properties bt dt).min_req_workers
 
-let placement_requirements b dt =
-  (properties b dt).placement_rules
+let rsc_requirements bt dt =
+  (properties bt dt).requirements
 
-let active_generation b dt = 
-  (properties b dt).active_generation
+let placement_requirements bt dt =
+  (properties bt dt).placement_rules
 
-let consumption_generation b dt = 
-  (properties b dt).consumption_generation
+let active_generation bt dt = 
+  (properties bt dt).active_generation
 
-let storage b dt =
-  (properties b dt).storages
+let max_rsc_output bt dt = 
+  (properties bt dt).max_rsc_output
+
+let consumption_generation bt dt = 
+  (properties bt dt).consumption_generation
+
+let storage bt dt =
+  (properties bt dt).storages

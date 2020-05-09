@@ -60,8 +60,10 @@ type building_properties = {
   name: building_type;
   max_residents: int;
   max_workers: int;
+  min_req_workers: int;
   requirements: requirement list;
   placement_rules: placement_rule list;
+  max_rsc_output: int;
   consumption_generation: consumption_generation list;
   active_generation: active_generation list;
   storages: storage list;
@@ -83,30 +85,37 @@ val building_types : t -> building_type list
 (** [resource_types dt] is the list of resource types in [d] *)
 val resource_types : t -> resource_type list
 
-(** [max_residents b dt] is the maximum number of residents
-    that can live in building [b] in game data [dt] *)
+(** [max_residents bt dt] is the maximum number of residents
+    that can live in building [bt] in game data [dt] *)
 val max_residents : building_type -> t -> int
 
-(** [max_workers b dt] is the maximum number of workers
-    that can work in building [b] in game data [dt] *)
+(** [max_workers bt dt] is the maximum number of workers
+    that can work in building [bt] in game data [dt] *)
 val max_workers : building_type -> t -> int
 
-(** [rsc_requirements b dt] is the list of resource requirements, which are
-    the resource types and amounts needed to build [b] in game data [dt] *)
+(** [min_req_workers bt dt] is the minimum number of workers
+   needed for building [bt] in game data [dt] to generate resources. *)
+val min_req_workers  : building_type -> t -> int
+
+(** [rsc_requirements bt dt] is the list of resource requirements, which are
+    the resource types and amounts needed to build [bt] in game data [dt] *)
 val rsc_requirements : building_type -> t -> requirement list
 
-(** [placement_requirements b dt] is the list of placement requirements, which are
-    the rules needed to build [b] in game data [dt] *)
+(** [placement_requirements bt dt] is the list of placement requirements, which are
+    the rules needed to build [bt] in game data [dt] *)
 val placement_requirements : building_type -> t -> placement_rule list
 
-(** [active_generation b dt] gives the active generation details of a building *)
+(** [active_generation bt dt] gives the active generation details of a building *)
 val active_generation : building_type -> t -> active_generation list
 
-(** [consumption_generation b dt] gives the consumption generation details 
+(** [max_rsc_output bt dt] gives the max resource output of building type [bt] *)
+val max_rsc_output : building_type -> t -> int
+
+(** [consumption_generation bt dt] gives the consumption generation details 
     of a building *)
 val consumption_generation : building_type -> t -> consumption_generation list
 
-(** [storage b dt] is the storage increase(s) that building [b]
+(** [storage bt dt] is the storage increase(s) that building [bt]
     provides in game data [dt] *)
 val storage : building_type -> t -> storage list
 

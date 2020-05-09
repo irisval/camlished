@@ -34,15 +34,27 @@
 
             ]
         },
-         {
+        {
+            "building type":"tree farm",
+            "x coordinate":6,
+            "y coordinate":4,
+            "workers":[
+                "chris hansen",
+                "sally hansen"
+            ],
+            "residents":[]
+        },
+        {
             "building type":"forge",
             "x coordinate":3,
             "y coordinate":1,
-            "workers":[
-
+            "workers":[  
             ],
             "residents":[
-
+                "sam",
+                "alex",
+                "crab",
+                "drake"
             ]
         },
         {

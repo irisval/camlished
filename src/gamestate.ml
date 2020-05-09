@@ -71,7 +71,7 @@ let user_data j = {
     try
       "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
     with
-    | Yojson.Json_error _ -> failwith "Can't find file"
+    | Yojson.Json_error _ -> failwith "Error parsing game data file."
 }
 
 let from_json j = try user_data j
@@ -124,54 +124,6 @@ let save (st:t) =
     close_out oc
 
 (* ====== Block: state operations ====== *)
-
-(** [rsc_check st rsc] checks that [rsc] is defined in the resource types of the 
-  game data in [st] *)
-let rsc_check rsc st =
-  let rsc_lst = st.game_data |> GameData.resource_types in 
-  match List.find_opt (fun r -> r = rsc.id) rsc_lst with 
-  | Some _ -> rsc 
-  | None -> raise IllegalResourceType
-
-let update_rsc (u_rsc : resource) st : t =
-  let u_rsc' = rsc_check u_rsc st in 
-  let rec update (rsc_lst:resource list) (acc:resource list)  = 
-  match rsc_lst with 
-  | r::t -> if r.id = u_rsc'.id then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
-            else update t (r::acc)
-  | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
-  {st with resources = update st.resources []}
-
-let get_rsc_amt rt st : int =
-  match List.find_opt (fun r -> r.id = rt) st.resources with 
-  | Some rsc -> rsc.amount
-  | None -> 0
-
-
-let building_consumption_gen (bt:GameData.building_type) st = 
-  let gen_lst = GameData.consumption_generation bt st.game_data in
-  List.fold_left (fun st' g ->
-    if (get_rsc_amt g.input_resource st') >= g.input_amount then
-    let input_st' = (update_rsc {id=g.input_resource; amount=g.input_amount * -1} st') in 
-      (update_rsc {id=g.output_resource; amount=g.output_amount} input_st')
-    else st')
-  st gen_lst
-
-
-let building_active_gen (bt:GameData.building_type) st =
-  let gen_lst = GameData.active_generation bt st.game_data in
-  List.fold_left (fun st' (g:active_generation) -> 
-    update_rsc {id=g.resource; amount=g.output} st') st gen_lst 
- 
-
-(** [step_buildings buildings resources] is the state with updated resources
-  after stepping through all of the buildings and executing their resource
-  generation. *)
-let step_buildings st =
-    List.fold_left (fun st' b -> 
-      let active_st' = building_active_gen b.building_type st' in 
-        building_consumption_gen b.building_type active_st') st st.buildings
-
 let turns st =
   st.turn_id
 
@@ -221,6 +173,10 @@ let is_empty coor st =
 let make_building building_type coor =
   {building_type = building_type; coordinates = coor; workers = []; residents = []}
 
+let get_rsc_amt rt st : int =
+  match List.find_opt (fun r -> r.id = rt) st.resources with 
+  | Some rsc -> rsc.amount
+  | None -> 0
 
 let meets_rsc_reqs bt st = 
   let req_lst = GameData.rsc_requirements bt st.game_data in
@@ -289,8 +245,7 @@ let assign_workers_b b amt st =
     let b' = {b with workers = updated_workers} in
     {st with buildings =
           b'::(List.filter (fun x -> x <> b) st.buildings)}
-  else
-    raise IllegalWorkerAssignment
+  else raise IllegalWorkerAssignment
 
 let assign_workers_c coor amt st =
   match get_building_at coor st with
@@ -324,6 +279,73 @@ let building_residents b =
 
 let building_workers b =
   b.workers
+
+(** [rsc_check st rsc] checks that [rsc] is defined in the resource types of the 
+  game data in [st] *)
+let rsc_check rsc st =
+  let rsc_lst = st.game_data |> GameData.resource_types in 
+  match List.find_opt (fun r -> r = rsc.id) rsc_lst with 
+  | Some _ -> rsc 
+  | None -> raise IllegalResourceType
+
+let update_rsc (u_rsc : resource) st : t =
+  let u_rsc' = rsc_check u_rsc st in 
+  let rec update (rsc_lst:resource list) (acc:resource list)  = 
+  match rsc_lst with 
+  | r::t -> if r.id = u_rsc'.id then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
+            else update t (r::acc)
+  | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
+  {st with resources = update st.resources []}
+
+
+(** [worker_rsc_output bt base_output st] gives the amount of resource that 
+  would be produced (assuming that input reqs are met) depending on the worker
+  properties of [bt], the amount of workers in [st], and the [base_output] of
+  the resource being produced *)
+(* TODO: clean up *)
+
+let worker_rsc_output (b:building) base_output st = 
+  let bt = b.building_type in 
+  let num_workers = List.length (building_workers b) in 
+  let min_workers = min_req_workers bt st.game_data in
+  let max_workers =  max_workers bt st.game_data in
+
+  if num_workers < min_workers then 0
+  else let r =  float_of_int (num_workers - min_workers) /. 
+    float_of_int (max_workers - min_workers) in 
+    let a =  Float.log10 ((9.0 *. r) +. 1.0) *. 
+            float_of_int (max_rsc_output bt st.game_data)  in
+    if (int_of_float a) + base_output > max_rsc_output bt st.game_data
+      then max_rsc_output bt st.game_data
+    else ((int_of_float a) + base_output)
+
+
+let building_consumption_gen (b:building) st = 
+  let gen_lst = GameData.consumption_generation b.building_type st.game_data in
+  List.fold_left (fun st' g ->
+    if (get_rsc_amt g.input_resource st') >= g.input_amount then
+      let input_st' = 
+      (update_rsc {id=g.input_resource; amount=g.input_amount * -1} st') in 
+      let new_amt = worker_rsc_output b g.output_amount st in 
+      (update_rsc {id=g.output_resource; amount= new_amt} input_st')
+    else st')
+  st gen_lst
+
+let building_active_gen (b:building) st =
+  let gen_lst = GameData.active_generation b.building_type st.game_data in
+  List.fold_left (fun st' (g:active_generation) -> 
+    let new_amt = worker_rsc_output b g.output st in 
+    update_rsc {id=g.resource; amount=new_amt} st') st gen_lst 
+ 
+
+(** [step_buildings buildings resources] is the state with updated resources
+  after stepping through all of the buildings and executing their resource
+  generation. *)
+let step_buildings st =
+    List.fold_left (fun st' b -> 
+    let active_st' = building_active_gen b st' in 
+      building_consumption_gen b active_st') st st.buildings
+
 
 let alive st = (population st = 0) |> not
 
