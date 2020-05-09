@@ -5,7 +5,6 @@ type action =
   | BuildingPicker of int
   | Inspecting of Gamestate.coordinates
 
-
 type t = {
   msg : string;
   act : action;
@@ -29,13 +28,39 @@ let starting = {
   act = Observing
 }
 
-let controls_text t = match t.act with
-  | Observing ->
-    "Space: end turn | I: inspect | B: place building | Q: quit"
-  | Placing _ -> "W/A/S/D: move | C: cancel | ;: select"
-  | Inspecting _ -> "W/A/S/D: move | C: cancel"
-  | BuildingPicker _ -> "W/D: pick | C: cancel | ;: select"
-  | _ -> ""
+let controls_text t =
+  let pairs = match t.act with
+    | Observing ->
+      [
+        ("Space" , "end turn" );
+        ("I" , "inspect" );
+        ("B" , "place building" );
+        ("Q", "quit")
+      ]
+    | Placing _ ->
+      [
+        ("W/A/S/D","move");
+        ("C","cancel");
+        (";","select")
+      ]
+    | Inspecting _ ->
+      [
+        ("W/A/S/D","move");
+        ("C","cancel");
+        (";","select")
+      ]
+    | BuildingPicker _ ->
+      [
+        ("W/D","pick");
+        ("C","cancel");
+        (";","select")
+      ]
+  in
+  match pairs with
+  | [] -> ""
+  | (hl,hr)::k ->
+    List.fold_left (fun acc (l,r) -> acc^" | "^l^" : "^r) (hl^" : "^hr) k
+
 
 let bad_command_text = "Unrecognized command."
 
@@ -52,8 +77,7 @@ let receive_observing c t msg_r gs =
     t with act = match c with
       | PlaceBuilding -> BuildingPicker 0
       | Inspect ->
-        let center= center_of_map gs in
-        msg_r := get_inspect_msg center gs; Inspecting center
+        let center= center_of_map gs in Inspecting center
       | _ -> Observing
   } in (t',gs')
 
@@ -121,8 +145,9 @@ let receive_inspect c (x,y) t msg_r gs =
       | Cancel -> Observing
       | _ -> Inspecting pos'
   } in
-  msg_r := get_inspect_msg pos' gs;
   (t',gs)
+
+let handle_inspect pos msg_r gs = msg_r := get_inspect_msg pos gs
 
 let receive_command c t gs =
   let msg_r = ref "" in
@@ -132,8 +157,8 @@ let receive_command c t gs =
     | BuildingPicker n -> receive_picking c n t msg_r gs
     | Inspecting pos -> receive_inspect c pos t msg_r gs
   in
-  ({
-    input with
-    msg = !msg_r
-  },gs)
-(* | _ -> (t,gs) *)
+  begin match input.act with
+    | Inspecting pos -> handle_inspect pos msg_r gs
+    | _ -> ()
+  end;
+  ( { input with msg = !msg_r },gs)
