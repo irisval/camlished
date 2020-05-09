@@ -120,3 +120,6 @@ val get_test_placed_building : building
 
 (**[get_turn gs] is the current turn in [gs]. *)
 val get_turn : t -> int
+
+(**[get_workers_at b] gives the list of workers in [b].*)
+val get_workers_at : building -> person list

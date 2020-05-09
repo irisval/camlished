@@ -18,6 +18,8 @@ let char_to_command c =
   | "s" -> Input.Down
   | "a" -> Input.Left
   | "d" -> Input.Right
+  | "y" -> Input.Assign
+  | "u" -> Input.Unassign
   | "q" -> Input.Quit
   | _ -> Input.Unrecognized
 

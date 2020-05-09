@@ -1,9 +1,15 @@
 type game = Gamestate.t
+
+type placing_state = PickLocation | AssignWorkers of int
+type adjust_workers_state = Assign | Unassign
+
 type action = 
   | Observing
-  | Placing of (GameData.building_type * Gamestate.coordinates)
+  | Placing of (placing_state * GameData.building_type * Gamestate.coordinates)
   | BuildingPicker of int
-  | Inspecting of (Gamestate.coordinates)
+  | Inspecting of Gamestate.coordinates
+  | AdjustWorkers of (adjust_workers_state * Gamestate.coordinates * int)
+
 type t = {
   msg : string;
   act : action;
@@ -21,8 +27,11 @@ type command =
   | Step
   | PlaceBuilding
   | Inspect
+  | Assign
+  | Unassign
   | Quit
   | Unrecognized
+
 
 (**[starting] is the initial input state upon starting the game. *)
 val starting : t

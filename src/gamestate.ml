@@ -253,3 +253,5 @@ let get_turn gs = gs.turn_id
                   name = x.name;
                   coordinates = x.coordinates
                 }) in *)
+
+let get_workers_at b = b.workers

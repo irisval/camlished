@@ -32,7 +32,7 @@ let char_of_tile = function
 
 let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs = 
   match input.act with
-  | Input.Placing (t,(xp,yp)) ->
+  | Placing (PickLocation,t,(xp,yp)) ->
     begin match (xp = x,yp = y) with
       | (true,true) ->
         let (s,c) = char_of_building t in
@@ -43,7 +43,7 @@ let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs =
       | (false,true) -> Some (current_style@[white], '-')
       | _ -> None
     end
-  | Input.Inspecting (xp,yp) ->
+  | Inspecting (xp,yp) ->
     begin match (xp = x,yp = y) with
       | (true,true) -> Some (current_style,current)
       | (true,false) -> Some (current_style@[white], '|')
@@ -196,6 +196,11 @@ let add_building_picker n y gs arr =
     )
     arr
 
+let add_worker_setter y amt arr =
+  let txt = "Workers: "^(string_of_int amt) in
+  add_text 0 y (style_string [yellow;Bold] txt) arr
+
+
 let add_turn x y gs arr = 
   let s = "Turn: "^(Gamestate.get_turn gs |> string_of_int) in
   add_text x y (style_string [cyan] s) arr
@@ -215,6 +220,8 @@ let print_2d o =
 let draw (input:Input.t) gs = 
   let (width,height) = Gamestate.get_bounds gs in
   let output = ref (text_map input gs) in
+  let map_top = 0 in
+  let map_left = 0 in
   let map_bottom = height + 3 in
   let map_right = width + 2 in
   output := 
@@ -226,7 +233,11 @@ let draw (input:Input.t) gs =
     |> add_message (map_bottom) [] input.msg
     |> (
       fun o -> match input.act with
-        | Input.BuildingPicker n -> add_building_picker n (map_bottom+1) gs o
+        | BuildingPicker n ->
+          add_building_picker n (map_bottom+1) gs o
+        | AdjustWorkers (_,_, amt)
+        | Placing (AssignWorkers amt, _, _) ->
+          add_worker_setter (map_bottom+1) amt o
         | _ -> o
     );
   erase Screen;
