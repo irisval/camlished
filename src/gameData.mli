@@ -13,6 +13,9 @@ type building_type = string
 (** The width and height of the map *)
 type bounds = int * int
 
+(** The type of seasons *)
+type season = Summer | Fall | Winter | Spring
+
 (** The type of tiles *)
 type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
 
@@ -58,6 +61,7 @@ val from_json : Yojson.Basic.t -> t
 (** The type representing properties tied to a building type *)
 type building_properties = {
   name: building_type;
+  warmth: float;
   max_residents: int;
   max_workers: int;
   min_req_workers: int;
@@ -93,6 +97,13 @@ val death_rate : t -> float
 
 (** [death_rate_starving dt] is the death rate when 0 food in [dt] *)
 val death_rate_starving : t -> float
+
+(** [death_rate_winter dt] is the death rate during winter in [dt] *)
+val death_rate_winter : t -> float
+
+(** [warmth bt dt] is the warmth of building type [bt] in [dt]. 0 indicates full
+    susceptibility to death rate winter, 1 uses regular death rate *)
+val warmth : building_type -> t -> float
 
 (** [max_residents bt dt] is the maximum number of residents
     that can live in building [bt] in game data [dt] *)

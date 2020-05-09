@@ -253,6 +253,7 @@ let life_death_tests = [
         (unwrap_building j (5, 6) |> building_residents |> remove_ppl 0.5)
         (["john doe"]));
   (* the below tests assume death rate and birth rate are set to 0.5 *)
+  (* building order is also fixed, and nothing touches Random after init *)
   "Step deaths, gone from residents" >:: (fun _ ->
       Random.init 11;
       let bl = get_buildings j in
@@ -290,12 +291,28 @@ let life_death_tests = [
      *)
 ]
 
+let season_tests = [
+  "Starting season is Summer" >:: (fun _ ->
+      assert_equal (season j) Summer);
+  "Starting year is 0" >:: (fun _ ->
+      assert_equal (year j) 0);
+  "Death chance during the winter" >:: (fun _ ->
+      assert_equal (death_chance 1 0.0 Winter j) (0.8));
+  "Death chance during the winter and starving" >:: (fun _ ->
+      assert_equal (death_chance 0 0.0 Winter j) (0.8));
+  "Death chance normally" >:: (fun _ ->
+      assert_equal (death_chance 1 0.0 Summer j) (0.5));
+  "Death chance starving" >:: (fun _ ->
+      assert_equal (death_chance 0 0.0 Summer j) (0.6));
+]
+
 let tests = [
   state_tests;
   building_placement_tests;
   resource_tests;
   population_tests;
   life_death_tests;
+  season_tests;
 ]
 
 let suite = "state test suite" >::: List.flatten tests

@@ -60,6 +60,12 @@ val step : t -> t
 (** [turns st] is the number of turns in [st] *)
 val turns : t -> int
 
+(** [year st] is the current year in [st] *)
+val year : t -> int
+
+(** [season st] is the current season in [st] *)
+val season : t -> GameData.season
+
 (* [get_buildings st] gives a list of all the buildings on the state's map. *)
 val get_buildings : t -> building list
 
@@ -160,6 +166,10 @@ val living_residents : building list -> person list
 
 (** [remove_ppl p l] is [l] randomly removing people with probability [p] *)
 val remove_ppl : float -> person list -> person list
+
+(** [death_chance food warmth season st] is the death chance using [st] game
+    data, based on food, warmth, and season *)
+val death_chance : int -> float -> GameData.season -> t -> float
 
 (** [kill_residents b st] is [b] after [kill_some] with death rate from [st] *)
 val kill_residents : building -> t -> building

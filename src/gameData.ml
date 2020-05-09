@@ -5,6 +5,7 @@ type resource_type = string
 type building_type = string
 type bounds = int * int
 
+type season = Summer | Fall | Winter | Spring
 type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
 type placement_rule_type = On | Next
 
@@ -39,6 +40,7 @@ type storage = {
 
 type building_properties = {
   name: building_type;
+  warmth: float;
   max_residents: int;
   max_workers: int;
   min_req_workers: int;
@@ -57,6 +59,7 @@ type game_data = {
   birth_rate: float;
   death_rate: float;
   death_rate_starving: float;
+  death_rate_winter: float;
 }
 
 type t = game_data
@@ -117,6 +120,7 @@ let json_storage j = {
 
 let json_building j = {
   name = j |> member "name" |> to_string;
+  warmth = j |> member "warmth" |> to_float;
   max_residents = j |> member "max residents" |> to_int;
   max_workers = j |> member "max workers" |> to_int;
   min_req_workers = j |> member "min req workers" |> to_int;
@@ -135,6 +139,7 @@ let game_data j = {
   birth_rate = j |> member "birth rate" |> to_float;
   death_rate = j |> member "death rate" |> to_float;
   death_rate_starving = j |> member "death rate starving" |> to_float;
+  death_rate_winter = j |> member "death rate winter" |> to_float;
 }
 
 let from_json j = try game_data j 
@@ -156,6 +161,9 @@ let death_rate dt =
 let death_rate_starving dt =
   dt.death_rate_starving
 
+let death_rate_winter dt =
+  dt.death_rate_winter
+
 (* gamestate methods *)
 (** [properties b dt] are the building properties for [b] in [dt] *)
 let properties bt dt : building_properties =
@@ -163,6 +171,9 @@ let properties bt dt : building_properties =
 
 let get_bounds dt = 
   dt.bounds
+
+let warmth bt dt =
+  (properties bt dt).warmth
 
 let max_residents bt dt =
   (properties bt dt).max_residents

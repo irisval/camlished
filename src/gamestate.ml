@@ -123,6 +123,7 @@ let save (st:t) =
     fprintf oc "%s\n" ( String.concat "" ["{"; body; "}"] );
     close_out oc
 
+
 (* ====== Block: state operations ====== *)
 let initial_state (tl: tile list) = 
   {turn_id=0; resources= []; buildings=[]; tiles=tl;
@@ -135,6 +136,17 @@ let initial_state (tl: tile list) =
 
 let turns st =
   st.turn_id
+
+let year st =
+  st.turn_id / 360
+
+let season st =
+  match st.turn_id / 90 mod 4 with
+  | 0 -> Summer
+  | 1 -> Fall
+  | 2 -> Winter
+  | 3 -> Spring
+  | _ -> failwith "Invalid season"
 
 let get_user_resources st =
   List.map (fun r -> (r.id, r.amount)) st.resources
@@ -381,13 +393,20 @@ let living_residents bl : person list =
 let remove_ppl p l : person list =
   List.filter (fun _ -> Random.float 1.0 > p) l
 
+let death_chance food warmth season st =
+  let normal = death_rate st.game_data in
+  let starve = death_rate_starving st.game_data in
+  let winter_raw = death_rate_winter st.game_data in
+  let winter = winter_raw -. (winter_raw -. normal) *. warmth in
+  match season with
+  | Winter when food <= 0 -> max winter starve
+  | Winter -> max winter normal
+  | _ when food <= 0 -> max starve normal
+  | _ -> normal
+
 let kill_residents b st : building =
-  let death_chance =
-    if get_rsc_amt "food" st <= 0 then
-      death_rate_starving st.game_data
-    else
-      death_rate st.game_data
-  in
+  let death_chance = death_chance (get_rsc_amt "food" st)
+      (warmth b.building_type st.game_data) (season st) st in
   let residents' = remove_ppl death_chance b.residents in
   {b with residents = residents'}
 
