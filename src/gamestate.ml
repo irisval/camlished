@@ -124,6 +124,14 @@ let save (st:t) =
     close_out oc
 
 (* ====== Block: state operations ====== *)
+let initial_state (tl: tile list) = 
+  {turn_id=0; resources= []; buildings=[]; tiles=tl; game_data= 
+    try
+      "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+    with
+    | Yojson.Json_error _ -> failwith "Error parsing game data file."
+  }
+
 let turns st =
   st.turn_id
 

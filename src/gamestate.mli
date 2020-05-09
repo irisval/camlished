@@ -34,6 +34,9 @@ val from_json : Yojson.Basic.t -> t
 (** [save st] saves the game by writing the game state to the data file. *)
 val save : t -> unit
 
+(** [initial_state t_lst] gives an initial state with the tile data 
+    t_lst when a map has been generated instead of loaded.  *)
+val initial_state : tile list -> t
 
 (** [st u_rsc] updates the resource list in [st] with the resource type and 
     amount associated with [u_rsc]. Creates new resource if [u_rsc] not found. 
