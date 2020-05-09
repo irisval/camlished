@@ -234,11 +234,21 @@ let population_tests = [
       assert_raises IllegalWorkerAssignment (fun () -> unassign_workers_c (3,2) ~-1 j));
 ]
 
+let life_death_tests = [
+  "Cap list length longer" >:: (fun _ ->
+      assert_equal (cap_list_length 10 [1; 2; 3] |> List.length) 3);
+  "Cap list length shorter" >:: (fun _ ->
+      assert_equal (cap_list_length 2 [1; 2; 3] |> List.length) 2);
+  "Cap list length is the front" >:: (fun _ ->
+      assert_equal (cap_list_length 2 [1; 2; 3]) [1; 2]);
+]
+
 let tests = [
   state_tests;
   building_placement_tests;
   resource_tests;
   population_tests;
+  life_death_tests;
 ]
 
 let suite = "state test suite" >::: List.flatten tests

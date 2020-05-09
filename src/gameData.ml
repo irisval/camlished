@@ -54,6 +54,8 @@ type game_data = {
   resource_types: resource_type list;
   building_properties: building_properties list;
   bounds: int * int;
+  birth_rate: float;
+  death_rate: float;
 }
 
 type t = game_data
@@ -129,6 +131,8 @@ let game_data j = {
   resource_types = j |> member "resource types" |> to_list |> List.map json_resource;
   building_properties = j |> member "building properties" |> to_list |> List.map json_building;
   bounds = (j |> member "width" |> to_int, j |> member "height" |> to_int);
+  birth_rate = j |> member "birth rate" |> to_float;
+  death_rate = j |> member "death rate" |> to_float;
 }
 
 let from_json j = try game_data j 
@@ -140,6 +144,12 @@ let building_types dt =
 
 let resource_types dt =
   dt.resource_types
+
+let birth_rate dt =
+  dt.birth_rate
+
+let death_rate dt =
+  dt.death_rate
 
 (* gamestate methods *)
 (** [properties b dt] are the building properties for [b] in [dt] *)
@@ -167,10 +177,10 @@ let placement_requirements bt dt =
 let active_generation bt dt = 
   (properties bt dt).active_generation
 
-let max_rsc_output bt dt = 
+let max_rsc_output bt dt =
   (properties bt dt).max_rsc_output
 
-let consumption_generation bt dt = 
+let consumption_generation bt dt =
   (properties bt dt).consumption_generation
 
 let storage bt dt =

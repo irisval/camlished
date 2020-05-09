@@ -73,10 +73,10 @@ type building_properties = {
 val tile_type_of_string : string -> tile_type
 
 (** [string_of_tile_type t] the string representation of the tile variant t *)
-val string_of_tile_type : tile_type -> string 
+val string_of_tile_type : tile_type -> string
 
-(** [placement_rule_of_string s] is the placement rule type variant 
-representation of s *)
+(** [placement_rule_of_string s] is the placement rule type variant
+    representation of s *)
 val placement_rule_of_string : string -> placement_rule_type
 
 (** [building_types dt] is the list of building types in [dt] *)
@@ -84,6 +84,12 @@ val building_types : t -> building_type list
 
 (** [resource_types dt] is the list of resource types in [d] *)
 val resource_types : t -> resource_type list
+
+(** [birth_rate dt] is the natural birth rate in [dt] *)
+val birth_rate : t -> float
+
+(** [death_rate dt] is the natural death rate in [dt] *)
+val death_rate : t -> float
 
 (** [max_residents bt dt] is the maximum number of residents
     that can live in building [bt] in game data [dt] *)
@@ -94,7 +100,7 @@ val max_residents : building_type -> t -> int
 val max_workers : building_type -> t -> int
 
 (** [min_req_workers bt dt] is the minimum number of workers
-   needed for building [bt] in game data [dt] to generate resources. *)
+    needed for building [bt] in game data [dt] to generate resources. *)
 val min_req_workers  : building_type -> t -> int
 
 (** [rsc_requirements bt dt] is the list of resource requirements, which are
@@ -111,7 +117,7 @@ val active_generation : building_type -> t -> active_generation list
 (** [max_rsc_output bt dt] gives the max resource output of building type [bt] *)
 val max_rsc_output : building_type -> t -> int
 
-(** [consumption_generation bt dt] gives the consumption generation details 
+(** [consumption_generation bt dt] gives the consumption generation details
     of a building *)
 val consumption_generation : building_type -> t -> consumption_generation list
 
