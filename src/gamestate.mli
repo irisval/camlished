@@ -142,6 +142,9 @@ val building_workers : building -> person list
 (** [max_population st] is the sum of max residents of each building in [st] *)
 val max_population : t -> int
 
+(** [cap_list_length n l] is [l] with at most [n] elements, from front *)
+val cap_list_length : int -> 'a list -> 'a list
+
 (** [remove_ppl p l] is [l] randomly removing people with probability [p] *)
 val remove_ppl : float -> person list -> person list
 

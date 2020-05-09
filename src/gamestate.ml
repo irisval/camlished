@@ -313,6 +313,13 @@ let max_population st =
   List.fold_left (fun acc b ->
       acc + (max_residents b.building_type st.game_data)) 0 st.buildings
 
+let rec cap_list_length n l =
+  match l with
+  | [] -> l
+  | h::t ->
+    if n <= 0 then []
+    else h::(cap_list_length (n - 1) t)
+
 let living_residents bl : person list =
   List.fold_left (fun acc b -> acc @ b.residents) [] bl
 
@@ -346,20 +353,32 @@ let baby_to_building name b st : (bool * building) =
   else
     (false, b)
 
-(*let distribute_births babies num bl st =
-  if num <= 0 then*)
+let dist_babies babies st b_arr : building array =
+  let rec dist_babies_rec babies : unit =
+    match babies with
+    | [] -> ()
+    | h::t ->
+      let rand_i = Random.int (Array.length b_arr) in
+      match baby_to_building h b_arr.(rand_i) st with
+      | (false, _) ->
+        dist_babies_rec babies (* try again *)
+      | (true, b) ->
+        b_arr.(rand_i) <- b;
+        dist_babies_rec t
+  in dist_babies_rec babies; b_arr
 
 let step_births bl st : building list =
   let babies = (fun b -> new_residents (birth_rate st.game_data) b.residents) in
-  let total_baby = List.map babies bl |> List.flatten in
-  let max_num_new = min (List.length total_baby)
-    ((max_population st) - (living_residents bl |> List.length)) in
-  bl
+  let all_baby = List.map babies bl |> List.flatten in
+  let baby_capped = cap_list_length
+    ((max_population st) - (living_residents bl |> List.length)) all_baby in
+  let b_arr = Array.of_list bl in
+  dist_babies baby_capped st b_arr |> Array.to_list
 
 (** [step_population st] is the updated buildings after stepping for pop *)
 let step_population st : building list =
   let after_deaths = step_deaths st.buildings st in
-  after_deaths
+  step_births after_deaths st
 
 let alive st = (population st = 0) |> not
 
