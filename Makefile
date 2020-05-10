@@ -1,34 +1,39 @@
-#
-# This Makefile is not called from Opam but only used for 
-# convenience during development
-#
+# Makefile adapted from previous things
 
-DUNE 	= dune
+MODULES=gameState gameData names mapGenerator perlin input renderer main
+OBJECTS=$(MODULES:=.cmo)
+MLS=$(MODULES:=.ml)
+MLIS=$(MODULES:=.mli)
+TEST=stateTest.byte
+MAIN=main.byte
+OCAMLBUILD=ocamlbuild -use-ocamlfind
 
-.PHONY: all install test clean uninstall format
+default: build
 
-all: 
-	$(DUNE) build src/main.exe
-	$(DUNE) build src/stateTest.exe
-
-docs:
-	$(DUNE) build @doc
-exec:
-	$(DUNE) exec src/main.exe
-
-install: all
-	$(DUNE) install
-
-uninstall:
-	$(DUNE) uninstall
+build:
+	$(OCAMLBUILD) $(OBJECTS)
 
 test:
-	$(DUNE) exec src/stateTest.exe
+	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
+
+play:
+	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
+
+exec: play
+
+docs: docs-public docs-private
+
+docs-public: build
+	mkdir -p doc.public
+	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
+		-html -stars -d doc.public $(MLIS)
+
+docs-private: build
+	mkdir -p doc.private
+	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
+		-html -stars -d doc.private \
+		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
 clean:
-	$(DUNE) clean
-
-format:
-	$(DUNE) build --auto-promote @fmt
-	opam lint
-	git ls-files '**/*.[ch]' | xargs -n1 indent -nut -i8
+	ocamlbuild -clean
+	rm -rf doc.public doc.private

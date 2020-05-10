@@ -59,13 +59,13 @@ let rec pick_game () =
   match c with
   | New ->
     ANSITerminal.(print_string [green] "Please enter the name of your world!\n");
-      print_endline "";
-    let name = read_line () in 
+    print_endline "";
+    let name = read_line () in
     let gs = GameState.initial_state name in play Input.starting gs
   | Load ->
     ANSITerminal.(print_string [green]
                     "\nPlease enter the location of your game data.
-      \n Ex: 'src/sampleSavedState.json' ");
+      \n Ex: 'sampleSavedState.json' ");
     begin match read_line () with
       | exception End_of_file -> ()
       | file_name -> load_saved_data file_name

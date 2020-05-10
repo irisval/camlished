@@ -10,7 +10,6 @@ doc.private
 *.cmx
 *.native
 *.byte
-*.merlin
 _build
 bin/
 

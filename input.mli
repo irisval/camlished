@@ -1,9 +1,11 @@
-type game = GameState.t
+(**
+    Input handler
+ *)
 
 type placing_state = PickLocation | AssignWorkers of int
 type adjust_workers_state = Assign | Unassign
 
-type action = 
+type action =
   | Observing
   | Placing of (placing_state * GameData.building_type * GameState.coordinates)
   | BuildingPicker of int
@@ -19,7 +21,7 @@ type t = {
 
 (** Represents input command types that modify input state.
     Input commands are mapped to one or more keys on keyboard.*)
-type command = 
+type command =
   | New
   | Load
   | Up
@@ -46,4 +48,4 @@ val controls_text : t -> string
 
 (**[receive_command c t gs] is [(t',gs')] where [t'] and [gs'] are
    [t] and [gs] after receiving [c].*)
-val receive_command : command -> t -> game -> (t*game)
+val receive_command : command -> t -> GameState.t -> (t * GameState.t)

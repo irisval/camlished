@@ -27,11 +27,11 @@ the user's side.
 We were able to check that all of the features worked together in sync and
 see that stepping turns displayed correct information in various scenarios.
 
-A combination of manual testing of the full game and unit testing of 
+A combination of manual testing of the full game and unit testing of
 individual features has ensured the overall correctness of our system. *)
 
-let j = "src/sampleSavedState.json" |> Yojson.Basic.from_file |> 
-        GameState.from_json_testing
+let j = "sampleSavedState.json"
+  |> Yojson.Basic.from_file |> GameState.from_json_testing
 
 (* source: a2 *)
 let cmp_set_like_lists lst1 lst2 =
@@ -43,7 +43,7 @@ let cmp_set_like_lists lst1 lst2 =
   &&
   uniq1 = uniq2
 
-let building_types: (building_type list) = 
+let building_types: (building_type list) =
   ["tent"; "wood shelter"; "log cabin"; "castle"; "quarry"; "mine"; "tree farm";
    "forge"; "sawmill"; "fishing dock"; "farm"]
 let resource_types: (resource_type list) =
@@ -52,41 +52,41 @@ let resource_types: (resource_type list) =
 
 (** [unwrap_building b] is the building [b] located at [coor] unwrapped from
     optional *)
-let unwrap_building j coor = 
-  match (get_building_at coor j) with 
+let unwrap_building j coor =
+  match (get_building_at coor j) with
   | Some b -> b
   | None -> failwith "building not found"
 
 (** [unwrap_building b] is the building type [bt] located at [coor] unwrapped
   from optional *)
-let unwrap_building_type j coor = 
-  match (get_building_type_at coor j) with 
+let unwrap_building_type j coor =
+  match (get_building_type_at coor j) with
   | Some b -> b
   | None -> failwith "building not found"
 
-(** [matches_test_building b] gives whether b is in the list of valid test 
+(** [matches_test_building b] gives whether b is in the list of valid test
   buildings *)
-let matches_test_building b = 
-  match List.find_opt (fun b'-> b = b') get_test_placed_buildings with 
-  | Some _ -> true 
-  | None -> false 
+let matches_test_building b =
+  match List.find_opt (fun b'-> b = b') get_test_placed_buildings with
+  | Some _ -> true
+  | None -> false
 
 (** [building_exists j coor] gives whether there is a valid building at [coor]
   *)
-let building_exists j coor = 
-  match (get_building_at coor j) with 
+let building_exists j coor =
+  match (get_building_at coor j) with
   | Some _ -> true
   | None -> false
 
 (** [unwrap_tile j coor] is the tile type located at [coor] but not optional
   *)
-let unwrap_tile j coor = 
-  match (get_tile_at coor j) with 
+let unwrap_tile j coor =
+  match (get_tile_at coor j) with
   | Some t -> t
   | None -> failwith "tile not found"
 
-let unwrap_building_type_test2 j  = 
-  match (get_building_type_at (10, 12) j) with 
+let unwrap_building_type_test2 j  =
+  match (get_building_type_at (10, 12) j) with
   | Some _ -> false
   | None -> true
 
@@ -107,7 +107,7 @@ let sawmill_workers = ["john doe"; "martha"]
 
 let state_tests = [
   "Checking get building types" >:: (fun _ ->
-      assert (cmp_set_like_lists 
+      assert (cmp_set_like_lists
       (j |> get_game_data |> GameData.building_types) (building_types)));
   "Checking get resource types" >:: (fun _ ->
       assert (cmp_set_like_lists
@@ -123,39 +123,39 @@ let state_tests = [
   "Checking empty get building type at" >:: (fun _ ->
       assert (j |> unwrap_building_type_test2));
   "Checking get tile at" >:: (fun _ ->
-      assert_equal (unwrap_tile j (1, 2)) get_test_tile); 
+      assert_equal (unwrap_tile j (1, 2)) get_test_tile);
   "Checking  is empty" >:: (fun _ ->
       assert (is_empty (15, 6) j));
 ]
 
 let building_placement_tests = [
   "Checking the successful placement of a building with no requirements" >::
-    (fun _ -> let b = place_building "tent" (0, 0) j in 
+    (fun _ -> let b = place_building "tent" (0, 0) j in
     assert (matches_test_building (unwrap_building b (0, 0))));
-  "Checking the failed placement of a building on an occupied tile" >:: 
-    (fun _ ->  assert (((is_empty (7, 5) j) |> not) 
+  "Checking the failed placement of a building on an occupied tile" >::
+    (fun _ ->  assert (((is_empty (7, 5) j) |> not)
     && (can_place_building_at "tent" (7, 5) j) |> not));
-  "Checking the successful placement of a building that meets all resource reqs" 
-    >:: (fun _ -> let b = place_building "quarry" (2, 2) j in 
+  "Checking the successful placement of a building that meets all resource reqs"
+    >:: (fun _ -> let b = place_building "quarry" (2, 2) j in
     assert (matches_test_building (unwrap_building b (2, 2))));
   "Checking the failed placement of a building that does not meet all resource
-   reqs" >:: (fun _ -> assert (((meets_rsc_reqs "forge" j) |> not) 
+   reqs" >:: (fun _ -> assert (((meets_rsc_reqs "forge" j) |> not)
     && (can_place_building_at "quarry" (6, 6) j) |> not));
   "Checking the placement of a building that meets the 'on tile' placement req"
-    >::(fun _ -> let b = place_building "quarry" (3, 3) j in 
+    >::(fun _ -> let b = place_building "quarry" (3, 3) j in
     assert (matches_test_building (unwrap_building b (3, 3))));
-  "Checking the failed placement of a building that does not meet the 'on tile' 
-  req" >:: (fun _ -> assert (((meets_placement_reqs "quarry" (6, 4) j) |> not) 
+  "Checking the failed placement of a building that does not meet the 'on tile'
+  req" >:: (fun _ -> assert (((meets_placement_reqs "quarry" (6, 4) j) |> not)
     && (can_place_building_at "tent" (6, 4) j) |> not));
-  "Checking the placement of a building that meets the 'next to tile' placement 
-  req" >:: (fun _ -> let b = place_building "fishing dock" (9, 9) j in 
+  "Checking the placement of a building that meets the 'next to tile' placement
+  req" >:: (fun _ -> let b = place_building "fishing dock" (9, 9) j in
     assert (matches_test_building (unwrap_building b (9, 9))));
   "Checking the failed placement of a building that doesn't meet the
-  'next to tile' placement req" >:: (fun _ -> 
-    assert (((meets_placement_reqs "fishing dock" (6, 4) j) |> not) 
+  'next to tile' placement req" >:: (fun _ ->
+    assert (((meets_placement_reqs "fishing dock" (6, 4) j) |> not)
     && (can_place_building_at "fishing dock" (6, 4) j) |> not));
-  "Checking the failed placement of a building that doesn't type that doesn't 
-  exist"  >:: (fun _ -> 
+  "Checking the failed placement of a building that doesn't type that doesn't
+  exist"  >:: (fun _ ->
     assert ((can_place_building_at "skyscraper" (6, 4) j) |> not));
 ]
 
@@ -163,67 +163,67 @@ let resource_tests = [
   (* Note: [building_consumption_gen] and [building_active_gen] do not take
     worker reqs into account *)
   "Correctly update already existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt get_test_food_type (update_rsc get_test_food j)) 
+    assert_equal (get_rsc_amt get_test_food_type (update_rsc get_test_food j))
     39);
   "Correctly add a non-existing resource" >:: (fun _ ->
-    assert_equal 
+    assert_equal
     ((update_rsc get_test_stone j) |> get_user_resources |> List.length) 6);
   "Correctly update a non-existing resource" >:: (fun _ ->
-    assert_equal (get_rsc_amt get_test_stone_type (update_rsc get_test_stone j)) 
+    assert_equal (get_rsc_amt get_test_stone_type (update_rsc get_test_stone j))
     3);
-  "Buiding generates no output when there's insufficient resource input" 
-    >:: (fun _ -> let st' = 
-    (building_consumption_gen (unwrap_building j (3, 1)) j) in 
-    assert ((get_rsc_amt get_test_ore_type st') = 2 
+  "Buiding generates no output when there's insufficient resource input"
+    >:: (fun _ -> let st' =
+    (building_consumption_gen (unwrap_building j (3, 1)) j) in
+    assert ((get_rsc_amt get_test_ore_type st') = 2
     && (get_rsc_amt get_test_metal_type st') = 6));
   "Building does not generate resources if there are insufficient workers.
-  They ate some of it too." >:: (fun _ -> let st' = step j in 
+  They ate some of it too." >:: (fun _ -> let st' = step j in
     assert ((get_rsc_amt get_test_food_type st') = 30));
-  "Actively generate base output of wood when tree farm has min req workers" 
-    >:: (fun _ -> let st'=(building_active_gen (unwrap_building j (6, 4)) j) in 
+  "Actively generate base output of wood when tree farm has min req workers"
+    >:: (fun _ -> let st'=(building_active_gen (unwrap_building j (6, 4)) j) in
     assert ((get_rsc_amt get_test_wood_type st') = 46));
   "Actively generate correct amt of wood when tree farm has more than
   the req workers" >:: (fun _ ->
-    let assigned = (assign_workers_c (6,4) 1 j) in 
-    let b = unwrap_building assigned (6,4) in 
-    let st' =  building_active_gen b assigned in 
+    let assigned = (assign_workers_c (6,4) 1 j) in
+    let b = unwrap_building assigned (6,4) in
+    let st' =  building_active_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st') = 52));
   "Actively generate correct amt of wood when tree farm has more than
   the req workers and hits max resource" >:: (fun _ ->
-    let assigned = (assign_workers_c (6,4) 3 j) in 
-    let b = unwrap_building assigned (6,4)  in 
-    let st' =  building_active_gen b assigned in 
+    let assigned = (assign_workers_c (6,4) 3 j) in
+    let b = unwrap_building assigned (6,4)  in
+    let st' =  building_active_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st') = 54));
-  "Actively generate correct amt of wood when tree farm has max 
+  "Actively generate correct amt of wood when tree farm has max
    req workers" >:: (fun _ ->
-    let assigned = (assign_workers_c (6,4) 5 j) in 
-    let b = unwrap_building assigned (6,4)  in 
-    let st' =  building_active_gen b assigned in 
+    let assigned = (assign_workers_c (6,4) 5 j) in
+    let b = unwrap_building assigned (6,4)  in
+    let st' =  building_active_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st') = 54));
  "Correctly consume resource input and generate resource output when sawmill
   has min req workers"  >:: (fun _ ->
-    let st' = (building_consumption_gen (unwrap_building j (3, 2)) j) in 
+    let st' = (building_consumption_gen (unwrap_building j (3, 2)) j) in
     assert ((get_rsc_amt get_test_wood_type st' ) = 39 &&
     (get_rsc_amt  get_test_planks_type st') = 16));
   "Correctly consume resource input and generate resource output when sawmill
   has more than the req workers"  >:: (fun _ ->
-    let assigned = (assign_workers_c (3,2) 1 j) in 
-    let b = unwrap_building assigned (3,2)  in 
-    let st' =  building_consumption_gen b assigned in 
+    let assigned = (assign_workers_c (3,2) 1 j) in
+    let b = unwrap_building assigned (3,2)  in
+    let st' =  building_consumption_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st' ) = 39 &&
     (get_rsc_amt  get_test_planks_type st') = 20));
   "Correctly consume resource input and generate resource output when sawmill
   has more than the req workers & hits max resource"  >:: (fun _ ->
-    let assigned = (assign_workers_c (3,2) 2 j) in 
-    let b =  unwrap_building assigned (3,2) in 
-    let st' =  building_consumption_gen b assigned in 
+    let assigned = (assign_workers_c (3,2) 2 j) in
+    let b =  unwrap_building assigned (3,2) in
+    let st' =  building_consumption_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st' ) = 39 &&
     (get_rsc_amt  get_test_planks_type st') = 21));
   "Correctly consume resource input and generate resource output when sawmill
   has max workers" >:: (fun _ ->
-    let assigned = (assign_workers_c (3,2) 5 j) in 
-    let b =  unwrap_building assigned (3,2) in 
-    let st' =  building_consumption_gen b assigned in 
+    let assigned = (assign_workers_c (3,2) 5 j) in
+    let b =  unwrap_building assigned (3,2) in
+    let st' =  building_consumption_gen b assigned in
     assert ((get_rsc_amt get_test_wood_type st' ) = 39 &&
     (get_rsc_amt  get_test_planks_type st') = 21));
 ]
@@ -241,7 +241,7 @@ let population_tests = [
       assert (cmp_set_like_lists
         (GameState.unassigned_workers j) (unassigned_workers)));
   "Residents of tent 1" >:: (fun _ ->
-      assert (cmp_set_like_lists  
+      assert (cmp_set_like_lists
                 (unwrap_building j (5,6) |> building_residents)
                 (tent_1_residents)));
   "Residents of tent 2" >:: (fun _ ->

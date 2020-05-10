@@ -1,4 +1,4 @@
-(** Name generator **)
+(** Name generator *)
 
 (** [init x] sets the random seed to [x] *)
 val init : int -> unit
