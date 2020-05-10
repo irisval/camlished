@@ -6,7 +6,10 @@
 type coordinates = (int*int)
 
 (** The type representing a resource *)
-type resource
+type resource = {
+  id: GameData.resource_type;
+  amount: int;
+}
 
 (** The type representing a person *)
 type person = string
