@@ -44,44 +44,16 @@ let starting = {
 let controls_text t =
   let pairs = match t.act with
     | Observing ->
-      [
-        ("Space" , "end turn" );
-        ("I" , "inspect" );
-        ("B" , "place building" );
-        ("P" , "save" );
-        ("Q", "quit")
-      ]
-    | Placing (PickLocation,_,_) ->
-      [
-        ("W/A/S/D","move");
-        ("C","cancel");
-        (";","select")
-      ]
+      [("Space" , "end turn" );("I" , "inspect" );("B" , "place building" );
+       ("P" , "save" );("Q", "quit")]
+    | Placing (PickLocation,_,_) ->[("W/A/S/D","move");("C","cancel");
+                                    (";","select")]
     | Placing (AssignWorkers _,_,_)
-    | AdjustWorkers _ ->
-      [
-        ("W/S","pick");
-        ("C","cancel");
-        (";","select")
-      ]
-    | Inspecting _ ->
-      [
-        ("W/A/S/D","move");
-        ("C","cancel");
-        ("Y","add workers");
-        ("U","remove workers")
-      ]
-    | BuildingPicker _ ->
-      [
-        ("A/D","pick");
-        ("C","cancel");
-        (";","select")
-      ]
-    | QuitConfirm -> 
-      [
-        ("C","cancel");
-        (";","confirm")
-      ]
+    | AdjustWorkers _ ->[("W/S","pick");("C","cancel");(";","select")]
+    | Inspecting _ ->[("W/A/S/D","move");("C","cancel");("Y","add workers");
+                      ("U","remove workers")]
+    | BuildingPicker _ ->[("A/D","pick");("C","cancel");(";","select")]
+    | QuitConfirm -> [("C","cancel");(";","confirm")]
     | Quit -> failwith "controls_text invalid for Quit state"
   in
   let write (l,r) = l^" : "^r in
@@ -101,6 +73,13 @@ let center_of_map gs = match Gamestate.get_bounds gs with
   | (x,y) -> (x/2, y/2)
 
 
+let comma_fold_opt l = match l with
+  | [] -> None
+  | h::k ->
+    Some (List.fold_left
+            (fun acc b -> acc^", "^h)
+            h k)
+
 let get_inspect_msg pos gs =
   let gd = Gamestate.get_game_data gs in
   let building_msg (b:Gamestate.building) =
@@ -110,18 +89,20 @@ let get_inspect_msg pos gs =
     let max_residents = GameData.max_residents b.building_type gd in
     let current_residents = List.length b.residents in
     let show_residents = max_residents > 0 in
-    let resources = "" in
-    let producing = "per turn" in
-    let consuming = Some "" in
-    b.building_type^": "^
-    "producing "
-    ^producing
-    |> (fun e ->
-        match consuming with
-        | Some x -> e^" for "^x
-        | None -> e
+    let active_gen = Gamestate.active_gen_rsc_amt b gs in
+    let con_gen = Gamestate.con_gen_rsc_amt b gs in
+    let write_rsc (r:Gamestate.resource) = (string_of_int r.amount)^" "^r.id in
+    let active_gen_text = List.map write_rsc active_gen |> comma_fold_opt in
+    let write_con_gen (p,c) = (write_rsc p)^ " for "^(write_rsc c) in
+    let con_gen_text = List.map write_con_gen con_gen |> comma_fold_opt in
+    b.building_type^": "
+    |> (fun e -> 
+        match active_gen_text, con_gen_text with
+        | Some p, Some c -> e^"producing "^p^", "^c^" per turn."
+        | Some s, None
+        | None, Some s -> e^"producing "^s^" per turn."
+        | None, None -> e
       )
-    |> (fun e -> e^".")
     |> (fun e -> 
         if show_workers then
           e^" Workers: "
@@ -137,11 +118,11 @@ let get_inspect_msg pos gs =
   | Some b -> building_msg b
   | None ->
     begin match Gamestate.get_tile_at pos gs with
-    | Some Water -> "Water."
-    | Some Forest -> "Forest."
-    | Some Mountain -> "Mountain."
-    | _ -> "Nothing special here."
-  end
+      | Some Water -> "Water."
+      | Some Forest -> "Forest."
+      | Some Mountain -> "Mountain."
+      | _ -> "Nothing special here."
+    end
 
 let get_building_pick_msg btype gs =
   let gd = Gamestate.get_game_data gs in
@@ -161,6 +142,30 @@ let get_building_pick_msg btype gs =
           ^string_of_int min_workers^"."
         else e^".")
     |> (fun e -> e)
+
+
+let get_building_place_msg btype gs =
+  let gd = Gamestate.get_game_data gs in
+  let reqs = GameData.placement_requirements btype gd in
+  let tile_to_str = function
+    | GameData.Grass -> "grass"
+    | GameData.Mountain -> "mountains"
+    | GameData.Forest -> "forest"
+    | GameData.Water -> "water"
+  in
+  let write_rule (r:GameData.placement_rule) = 
+    let tile_str = tile_to_str r.tile in
+    match r.rule_type with
+    | On -> "on "^tile_str
+    | Next -> "next to "^tile_str
+  in
+  let req_txt = match comma_fold_opt (List.map write_rule reqs) with
+    | Some s -> "Must be placed "^s^"."
+    | None -> ""
+  in
+  "Where will you place this building? " ^ req_txt
+
+
 
 let get_assign_workers_msg btype gs =
   let gd = Gamestate.get_game_data gs in
@@ -352,8 +357,8 @@ let receive_command c t gs =
     | BuildingPicker n ->
       let types = gs |> Gamestate.get_game_data |> GameData.building_types in
       msg_r := get_building_pick_msg (List.nth types n) gs
-    | Placing (PickLocation, _,_) ->
-      msg_r := "Where will you put this building?"
+    | Placing (PickLocation, btype,_) ->
+      msg_r := get_building_place_msg btype gs
     | Placing (AssignWorkers _,btype,_) ->
       msg_r := "How many workers should be assigned to this building?"
                ^" "^get_assign_workers_msg btype gs 
