@@ -17,7 +17,7 @@ type bounds = int * int
 type season = Summer | Fall | Winter | Spring
 
 (** The type of tiles *)
-type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
+type tile_type = Grass | Mountain | Water | Forest
 
 (** The type of building placement rules *)
 type placement_rule_type = On | Next

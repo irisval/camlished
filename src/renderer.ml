@@ -15,19 +15,30 @@ let char_of_building = function
   | "castle" -> ([white;on_black],'M')
   | "quarry" -> ([white;on_black],'Q')
   | "mine" -> ([white;on_black],'_')
-  | "Forester" -> ([white;on_black],'n')
-  | "Forge" -> ([white;on_black],'l')
-  | "Fishing Docks" -> ([white;on_black],'=')
-  | "Farm" -> ([white;on_yellow],' ')
+  | "forester" -> ([white;on_black],'n')
+  | "forge" -> ([white;on_black],'l')
+  | "fishing docks" -> ([white;on_black],'=')
+  | "farm" -> ([white;on_yellow],' ')
   | _ -> ([black;on_white],'?')
 
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
-let char_of_tile = function
-  | Grass -> ([on_green], ' ')
-  | Mountain -> ([Bold;black;on_green],'^')
+let char_of_tile tile gs =
+  let season = Gamestate.season gs in
+  let on_grass = match season with 
+    | Winter -> on_white
+    | Fall -> on_yellow
+    | Spring | Summer -> on_green
+  in
+  let tree_color = match season with
+    | Fall -> red
+    | _ -> black
+  in
+  match tile with
+  | Grass -> ([on_grass], ' ')
+  | Mountain -> ([Bold;black;on_grass],'^')
   | Water -> ([white;on_blue],if Random.bool () then '~' else ' ')
-  | Forest -> ([black;on_green],'l')
+  | Forest -> ([tree_color;on_grass],'l')
 
 
 let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs = 
@@ -58,7 +69,7 @@ let char_at pos input gs =
   let base = match Gamestate.get_building_type_at pos gs
     with
     | Some b -> char_of_building b
-    | None -> char_of_tile (Gamestate.tile_rep_at pos gs)
+    | None -> char_of_tile (Gamestate.tile_rep_at pos gs) gs
   in
   let over = input_map_overlay base pos input gs in
   match over with 
@@ -117,11 +128,6 @@ let style_string (l: style list)(s:string) =
   string_to_chars s |>
   List.map (fun e -> (l,e))
 
-(**[resource_label (name,value)] gives the rendered label for a resource named
-   [name] with quantity [value].*)
-let resource_label (name,value) = 
-  (name ^ ": " ^ string_of_int value)
-  |> style_string [magenta] 
 
 let rec first n s = 
   if n = 0 then [] else
@@ -151,10 +157,25 @@ let insert_at pos x s =
   @ x
   @ (last (len-pos-(List.length x) |> max 0) s)
 
-let add_resources x y gs arr =
+let add_text x y styletext arr = 
+  let arr = extend (y+1) [] arr in
+  let linetxt' =
+    Array.get arr y
+    |> insert_at x styletext in
+  Array.set arr y linetxt';
+  arr
+
+
+(**[resource_label (name,value)] gives the rendered label for a resource named
+   [name] with quantity [value].*)
+let resource_label (name,value) = 
+  (name ^ ": " ^ string_of_int value)
+  |> style_string [magenta]
+
+let add_side_info x y gs arr =
   let resources = (get_user_resources gs) in
   let arr = extend ((List.length resources * 2) + y) [] arr in
-  let rec add_resources_aux (line:int) r = 
+  let rec add_resources (line:int) r arr = 
     match r with
     | [] -> arr
     | h::k ->
@@ -165,17 +186,19 @@ let add_resources x y gs arr =
       in
       Array.set arr line linetxt';
       let line' = line + 2 in
-      add_resources_aux line' k 
+      add_resources line' k arr
   in
-  add_resources_aux y resources
-
-let add_text x y styletext arr = 
-  let arr = extend (y+1) [] arr in
-  let linetxt' =
-    Array.get arr y
-    |> insert_at x styletext in
-  Array.set arr y linetxt';
-  arr
+  let pop = Gamestate.population gs in
+  let max_pop = Gamestate.max_population gs in
+  let unassigned = Gamestate.unassigned_workers gs |> List.length in
+  let pop_text =
+    "population: " ^ (string_of_int pop) ^"/"^(string_of_int max_pop) in
+  let unassigned_text =
+    "unassigned workers: " ^ (string_of_int unassigned) in
+  add_text x y (style_string [magenta;Bold] pop_text) arr
+  |> add_text x (y+2)
+    (style_string [magenta;Bold] unassigned_text)
+  |> add_resources (y+4) resources
 
 let add_message y style msg arr = add_text 0 y (msg |> style_string style) arr
 
@@ -206,9 +229,22 @@ let add_worker_setter act y amt arr =
   add_text 0 y (style_string [yellow;Bold] txt) arr
 
 
-let add_turn x y gs arr = 
-  let s = "Turn: "^(Gamestate.turns gs |> string_of_int) in
-  add_text x y (style_string [cyan] s) arr
+let add_top_info x y width gs arr = 
+  let add_turn arr = 
+    let s = "Turn: "^(Gamestate.turns gs |> string_of_int) in
+    add_text x y (style_string [yellow] s) arr
+  in
+  let add_yr_season arr =
+    let s = 
+      (match Gamestate.season gs with
+       | Summer -> "Summer"
+       | Spring -> "Spring"
+       | Fall -> "Fall"
+       | Winter -> "Winter")
+      ^" "^(Gamestate.year gs + 2020 |> string_of_int)
+    in add_text (x + width - (String.length s)) y (style_string [yellow] s) arr
+  in
+  arr|> add_turn|> add_yr_season
 
 
 let hide_cursor () = printf [] "\027[?25l%!"
@@ -222,7 +258,8 @@ let print_2d o =
         line; print_newline ())
     (Array.to_list o)
 
-let draw (input:Input.t) gs = 
+
+let draw_output input gs = 
   let (width,height) = Gamestate.get_bounds gs in
   let output = ref (text_map input gs) in
   let map_top = 0 in
@@ -231,10 +268,10 @@ let draw (input:Input.t) gs =
   let map_right = width + 2 in
   output := 
     Array.append (Array.make 1 []) !output
-    |> add_resources (map_right + 3) 1 gs
+    |> add_side_info (map_right + 3) 1 gs
     |> add_text (width/2 - 4) 0 (style_string [Bold] "Camlished")
     |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
-    |> add_turn 0 0 gs
+    |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg
     |> (
       fun o -> match input.act with
@@ -245,6 +282,34 @@ let draw (input:Input.t) gs =
           add_worker_setter input.act (map_bottom+1) amt o
         | _ -> o
     );
+  !output
+
+let draw (input:Input.t) gs = 
+  erase Screen;
+  hide_cursor ();
+  set_cursor 1 1;
+  print_2d (draw_output input gs)
+
+
+let you_died input gs =
+  let text1 = "Game over! Everyone died :(" in
+  let text2 = "You survived "
+              ^ (Gamestate.turns gs |> string_of_int) ^ " turns."in
+  let (width,height) = Gamestate.get_bounds gs in
+  let output = ref (draw_output input gs) in
+  let map_top = 0 in
+  let map_left = 0 in
+  let map_bottom = height + 3 in
+  let map_right = width + 2 in
+  let centerx = (map_left + map_right)/2 in
+  let x1 = centerx - ((String.length text1)/2) |> max 0 in
+  let y1 = (map_top + map_bottom)/2 in
+  let x2 = centerx - ((String.length text2)/2) |> max 0 in
+  let y2 = y1+1 in
+  output := 
+    (!output)
+    |> add_text x1 y1 (style_string [white;on_red;Bold] text1)
+    |> add_text x2 y2 (style_string [white;on_red;Bold] text2);
   erase Screen;
   hide_cursor ();
   set_cursor 1 1;

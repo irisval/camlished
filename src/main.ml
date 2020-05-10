@@ -31,6 +31,7 @@ let rec play in_state gs =
   if is_quit then exit 0 else
     let (in_state', gs') = Input.receive_command c in_state gs in
     if Gamestate.alive gs then play in_state' gs'
+    else Renderer.you_died in_state' gs'
 
 let () = 
   (* let gs = ("src/sampleSavedState.json" |> Yojson.Basic.from_file |> Gamestate.from_json) in *)

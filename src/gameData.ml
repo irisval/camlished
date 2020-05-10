@@ -6,7 +6,7 @@ type building_type = string
 type bounds = int * int
 
 type season = Summer | Fall | Winter | Spring
-type tile_type = Grass | Mountain | Water | Forest | Flowers | Sand
+type tile_type = Grass | Mountain | Water | Forest
 type placement_rule_type = On | Next
 
 
@@ -69,8 +69,6 @@ let tile_type_of_string = function
   | "mountain" -> Mountain
   | "water" -> Water
   | "forest" -> Forest
-  | "flowers" -> Flowers
-  | "sand" -> Sand
   | _ -> failwith "Invalid string to tile type conversion"
 
 let string_of_tile_type = function
@@ -78,8 +76,6 @@ let string_of_tile_type = function
   | Mountain -> "mountain"
   | Water -> "water"
   | Forest -> "forest"
-  | Flowers -> "flowers"
-  | Sand -> "sand"
   | _ -> failwith "Invalid string to tile type conversion"
 
 let placement_rule_of_string = function
