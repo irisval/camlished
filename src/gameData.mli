@@ -101,8 +101,9 @@ val death_rate_starving : t -> float
 (** [death_rate_winter dt] is the death rate during winter in [dt] *)
 val death_rate_winter : t -> float
 
-(** [warmth bt dt] is the warmth of building type [bt] in [dt]. 0 indicates full
-    susceptibility to death rate winter, 1 uses regular death rate *)
+(** [warmth bt dt] is the warmth of building type [bt] in [dt].
+    0 indicates full susceptibility to the death rate of winter,
+    1 uses regular death rate *)
 val warmth : building_type -> t -> float
 
 (** [max_residents bt dt] is the maximum number of residents
@@ -121,14 +122,14 @@ val min_req_workers  : building_type -> t -> int
     the resource types and amounts needed to build [bt] in game data [dt] *)
 val rsc_requirements : building_type -> t -> requirement list
 
-(** [placement_requirements bt dt] is the list of placement requirements, which are
-    the rules needed to build [bt] in game data [dt] *)
+(** [placement_requirements bt dt] is the list of placement requirements,
+    which are the rules needed to build [bt] in game data [dt] *)
 val placement_requirements : building_type -> t -> placement_rule list
 
-(** [active_generation bt dt] gives the active generation details of a building *)
+(** [active_generation bt dt] is the active generation details of a building *)
 val active_generation : building_type -> t -> active_generation list
 
-(** [max_rsc_output bt dt] gives the max resource output of building type [bt] *)
+(** [max_rsc_output bt dt] is the max resource output of building type [bt] *)
 val max_rsc_output : building_type -> t -> int
 
 (** [consumption_generation bt dt] gives the consumption generation details

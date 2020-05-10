@@ -1,3 +1,7 @@
+(**
+    The state of a game
+ *)
+
 (** The type representing coordinates *)
 type coordinates = (int*int)
 
@@ -231,7 +235,7 @@ val eat_food : t -> t
 (** [alive st] is if there are still living people in [st] *)
 val alive : t -> bool
 
-(** [get_bounds] returns the bounds of the game *)
+(** [get_bounds st] returns the bounds of the game *)
 val get_bounds : t -> GameData.bounds
 
 (** [get_test_building] generates a building for testing *)
@@ -240,7 +244,8 @@ val get_test_building : building
 (** [get_test_tile] generates a [tile_type] for testing *)
 val get_test_tile : GameData.tile_type
 
-(** [get_test_placed_buildings] gives a list of buildings for placement testing *)
+(** [get_test_placed_buildings] gives a list of
+    buildings for placement testing *)
 val get_test_placed_buildings : building list
 
 (** [get_test_food] generates a food resource for resource testing *)

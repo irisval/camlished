@@ -83,18 +83,23 @@ let placement_rule_of_string = function
   | _ -> failwith "Invalid string to placement rule conversion"
 
 (* ====== Block: Read game data from json ====== *)
+(** [json_resource j] constructs a single resource from [j] *)
 let json_resource j = j |> to_string
 
+(** [json_requirements j] constructs a single requirement from [j] *)
 let json_requirements j = {
   resource = j |> member "resource" |> to_string;
   amount = j |> member "amount" |> to_int;
 }
 
+(** [json_placement j] constructs a single placement rule from [j] *)
 let json_placement j = {
   rule_type = j |> member "type" |> to_string |> placement_rule_of_string;
   tile = j |> member "tile" |> to_string |> tile_type_of_string;
 }
 
+(** [json_consumption_gen j] constructs a single consumption generation
+ from [j] *)
 let json_consumption_gen j = {
   input_resource = j |> member "input resource" |> to_string;
   input_amount = j |> member "input amount" |> to_int;
@@ -102,16 +107,19 @@ let json_consumption_gen j = {
   output_amount = j |> member "output amount" |> to_int;
 }
 
+(** [json_active_gen j] constructs a single active generation from [j] *)
 let json_active_gen j = {
   resource = j |> member "resource" |> to_string;
   output = j |> member "output" |> to_int;
 }
 
+(** [json_storage j] constructs a single storage from [j] *)
 let json_storage j = {
   resource = j |> member "resource" |> to_string;
   capacity = j |> member "capacity" |> to_int;
 }
 
+(** [json_building j] constructs a single building from [j] *)
 let json_building j = {
   name = j |> member "name" |> to_string;
   warmth = j |> member "warmth" |> to_float;
@@ -130,6 +138,7 @@ let json_building j = {
   storages = j |> member "storage" |> to_list |> List.map json_storage;
 }
 
+(** [game_data j] constructs game data from [j] *)
 let game_data j = {
   resource_types = j |> member "resource types" |> to_list 
     |> List.map json_resource;
@@ -142,6 +151,7 @@ let game_data j = {
   death_rate_winter = j |> member "death rate winter" |> to_float;
 }
 
+(** [from_json j] turns a game data file into a game data state *)
 let from_json j = try game_data j 
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
 

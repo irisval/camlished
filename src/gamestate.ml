@@ -70,10 +70,7 @@ let json_building j = {
   residents = j |> member "residents" |> to_list |> List.map json_person
 }
 
-(* * [coor_json xy_lst] constructs from [j] *)
-let coor_json (xy_lst:int list) = (List.hd xy_lst, List.nth xy_lst 1)
-
-(** [json_tile j] constructs from [j] *)
+(** [json_tile j] constructs a tile from [j] *)
 let json_tile j = {
   name  = j |> member "tile type" |> to_string |> GameData.tile_type_of_string;
   coordinates = 
@@ -81,6 +78,7 @@ let json_tile j = {
      j |> member "y coordinate" |>  to_int)
 }
 
+(** [user_data j] constructs a gamestate from [j] *)
 let user_data j = {
   turn_id = j |> member "turn id" |> to_int;
   resources = j |> member "resources" |> to_list |> List.map json_resource;
@@ -93,9 +91,12 @@ let user_data j = {
     | Yojson.Json_error _ -> failwith "Error parsing game data file."
 }
 
+(** [from_json j] turns a user game data file into a gamestate *)
 let from_json j = try user_data j
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
 
+(** [resources_to_json rsc_lst] gives the json string format of the resources
+    in [rsc_lst] *)
 let resources_to_json (rsc_lst: resource list) : string = 
   let convert = function
     | {id=i; amount=a} -> String.concat ""
@@ -105,11 +106,15 @@ let resources_to_json (rsc_lst: resource list) : string =
   let strs : string list = List.map convert rsc_lst in 
   String.concat "," strs
 
+(** [people_to_json people] gives the json string format of the pepole
+    in [people] *)
 let people_to_json (people : person list) : string = 
   let (p_str : string list) = 
     List.map (fun p -> String.concat "" ["\""; p; "\""]) people in 
   String.concat "," p_str
 
+(** [buildings_to_json bg_lst] gives the json string format of the buildings
+    in [bg_lst] *)
 let buildings_to_json (bg_lst : building list) : string = 
   let convert = function
     | {building_type=b; coordinates = c; workers = w; residents = r} -> 
@@ -122,6 +127,8 @@ let buildings_to_json (bg_lst : building list) : string =
   let strs : string list = List.map convert bg_lst in 
   String.concat "," strs
 
+(** [tiles_to_json tile_lst] gives the json string format of the tiles
+    in [tile_lst] *)
 let tiles_to_json (tile_lst : tile list) : string = 
   let convert = function 
     | {name=n; coordinates=c} -> 
@@ -133,6 +140,7 @@ let tiles_to_json (tile_lst : tile list) : string =
   let strs : string list = List.map convert tile_lst in 
   String.concat "," strs
 
+(** [save] saves the current gamestate [st] to a data file*)
 let save (st:t) = 
   match st with 
   | {turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
