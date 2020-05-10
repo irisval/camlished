@@ -158,6 +158,8 @@ let insert_at pos x s =
   @ (last (len-pos-(List.length x) |> max 0) s)
 
 let add_text x y styletext arr = 
+  let x = max x 0 in
+  let y = max y 0 in
   let arr = extend (y+1) [] arr in
   let linetxt' =
     Array.get arr y
@@ -242,6 +244,10 @@ let add_top_info x y width gs arr =
   in
   arr|> add_turn|> add_yr_season
 
+let add_title left right y gs =
+  let world_name = GameState.world_name gs in
+  let x = (left + right /2) - (String.length world_name / 2) in
+  add_text x y (style_string [Bold] world_name)
 
 let hide_cursor () = printf [] "\027[?25l%!"
 
@@ -267,7 +273,7 @@ let draw_output input gs =
   output := 
     Array.append (Array.make 1 []) !output
     |> add_side_info (map_right + 3) 1 gs
-    |> add_text (width/2 - 4) 0 (style_string [Bold] (GameState.world_name gs))
+    |> add_title 0 map_right 0 gs
     |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
     |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg

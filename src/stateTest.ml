@@ -1,3 +1,4 @@
+open Lib
 open OUnit2
 open Yojson.Basic.Util
 open GameState

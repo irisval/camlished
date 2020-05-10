@@ -1,14 +1,17 @@
-type game = GameState.t
+open GameData
+open GameState
+
+type game = t
 
 type placing_state = PickLocation | AssignWorkers of int
 type adjust_workers_state = Assign | Unassign
 
 type action = 
   | Observing
-  | Placing of (placing_state * GameData.building_type * GameState.coordinates)
+  | Placing of (placing_state * building_type * coordinates)
   | BuildingPicker of int
-  | Inspecting of GameState.coordinates
-  | AdjustWorkers of (adjust_workers_state * GameState.coordinates * int)
+  | Inspecting of coordinates
+  | AdjustWorkers of (adjust_workers_state * coordinates * int)
   | QuitConfirm
   | Quit
 
@@ -36,7 +39,7 @@ type command =
   | Unrecognized
 
 let starting = {
-  msg = "Welcome to Camlished. Best of luck growing your society!";
+  msg = "Welcome to Camlished. Best of luck growing your society!"; 
   act = Observing
 }
 
@@ -67,9 +70,26 @@ let wrap max n =
     let r = n mod max in
     if r >= 0 then r else r + max
 
-let bad_command_text = "Unrecognized command."
+let wrap_control max n c = wrap max (
+    match c with
+    | Up -> n+1
+    | Down -> n-1
+    | _ -> n
+  )
 
-let center_of_map gs = match GameState.get_bounds gs with
+let in_bounds (width,height) (x,y) =
+  (x >= 0) && (x < width) && (y >= 0) && (y < height)
+
+let move_control (x,y) gs c =
+  let move = match c with
+    | Up -> (x,y-1)
+    | Down -> (x,y+1)
+    | Left -> (x-1,y)
+    | Right -> (x+1,y)
+    | _ -> (x,y) in
+  if in_bounds (get_bounds gs) move then move else (x,y)
+
+let center_of_map gs = match get_bounds gs with
   | (x,y) -> (x/2, y/2)
 
 
@@ -80,26 +100,28 @@ let comma_fold_opt l = match l with
             (fun acc b -> acc^", "^b)
             h k)
 
-let building_msg (b:GameState.building) gs =
-  let gd = GameState.get_game_data gs in
-  let max_workers = GameData.max_workers b.building_type gd in
-  let current_workers = List.length b.workers in
-  let max_residents = GameData.max_residents b.building_type gd in
-  let current_residents = List.length b.residents in
-  let active_gen = GameState.active_gen_rsc_amt b gs in
-  let con_gen = GameState.con_gen_rsc_amt b gs in
-  let write_rsc (r:GameState.resource) = (string_of_int r.amount)^" "^r.id in
+
+let building_gen_text b gs e = 
+  let active_gen = active_gen_rsc_amt b gs in
+  let con_gen = con_gen_rsc_amt b gs in
+  let write_rsc (r:resource) = (string_of_int r.amount)^" "^r.id in
   let active_gen_text = List.map write_rsc active_gen |> comma_fold_opt in
   let write_con_gen (p,c) = (write_rsc p)^ " for "^(write_rsc c) in
   let con_gen_text = List.map write_con_gen con_gen |> comma_fold_opt in
+  match active_gen_text, con_gen_text with
+  | Some p, Some c -> e^"producing "^p^", "^c^" per turn."
+  | Some s, None| None, Some s -> e^"producing "^s^" per turn."
+  | None, None -> e
+
+
+let building_msg (b:building) gs =
+  let gd = get_game_data gs in
+  let max_workers = max_workers b.building_type gd in
+  let current_workers = List.length b.workers in
+  let max_residents = max_residents b.building_type gd in
+  let current_residents = List.length b.residents in
   b.building_type^": "
-  |> (fun e -> 
-      match active_gen_text, con_gen_text with
-      | Some p, Some c -> e^"producing "^p^", "^c^" per turn."
-      | Some s, None
-      | None, Some s -> e^"producing "^s^" per turn."
-      | None, None -> e
-    )
+  |> building_gen_text b gs
   |> (fun e -> 
       if max_workers > 0 then
         e^" Workers: "
@@ -112,10 +134,10 @@ let building_msg (b:GameState.building) gs =
       else e) 
 
 let get_inspect_msg pos gs =
-  match GameState.get_building_at pos gs with
+  match get_building_at pos gs with
   | Some b -> building_msg b gs
   | None ->
-    begin match GameState.get_tile_at pos gs with
+    begin match get_tile_at pos gs with
       | Some Water -> "Water."
       | Some Forest -> "Forest."
       | Some Mountain -> "Mountain."
@@ -123,10 +145,10 @@ let get_inspect_msg pos gs =
     end
 
 let get_building_pick_msg btype gs =
-  let gd = GameState.get_game_data gs in
-  let placement_costs = GameData.rsc_requirements btype gd in
-  let min_workers = GameData.min_req_workers btype gd in
-  let write (b:GameData.requirement) =
+  let gd = get_game_data gs in
+  let placement_costs = rsc_requirements btype gd in
+  let min_workers = min_req_workers btype gd in
+  let write (b:requirement) =
     (string_of_int b.amount)^" "^b.resource in
   "Requires: "
   ^ match placement_costs with
@@ -143,15 +165,15 @@ let get_building_pick_msg btype gs =
 
 
 let get_building_place_msg btype gs =
-  let gd = GameState.get_game_data gs in
-  let reqs = GameData.placement_requirements btype gd in
+  let gd = get_game_data gs in
+  let reqs = placement_requirements btype gd in
   let tile_to_str = function
-    | GameData.Grass -> "grass"
-    | GameData.Mountain -> "mountains"
-    | GameData.Forest -> "forest"
-    | GameData.Water -> "water"
+    | Grass -> "grass"
+    | Mountain -> "mountains"
+    | Forest -> "forest"
+    | Water -> "water"
   in
-  let write_rule (r:GameData.placement_rule) = 
+  let write_rule (r:placement_rule) = 
     let tile_str = tile_to_str r.tile in
     match r.rule_type with
     | On -> "on "^tile_str
@@ -160,22 +182,21 @@ let get_building_place_msg btype gs =
   let req_txt = match comma_fold_opt (List.map write_rule reqs) with
     | Some s -> "Must be placed "^s^"."
     | None -> ""
-  in
-  "Where will you place this building? " ^ req_txt
+  in "Where will you place this building? " ^ req_txt
 
 
 
 let get_assign_workers_msg btype gs =
-  let gd = GameState.get_game_data gs in
-  let max_workers = GameData.max_workers btype gd in
+  let gd = get_game_data gs in
+  let max_workers = max_workers btype gd in
   "Max: " ^ (string_of_int max_workers)
 
 
 let get_adjust_workers_msg pos gs =
-  let btype= Option.get (GameState.get_building_type_at pos gs) in
-  let gd = GameState.get_game_data gs in
-  let max_workers = GameData.max_workers btype gd in
-  let b = Option.get (GameState.get_building_at pos gs) in
+  let btype= Option.get (get_building_type_at pos gs) in
+  let gd = get_game_data gs in
+  let max_workers = max_workers btype gd in
+  let b = Option.get (get_building_at pos gs) in
   let current = List.length b.workers in
   "Max: " ^ (string_of_int max_workers) ^
   ", Current: " ^ (string_of_int current)
@@ -183,11 +204,11 @@ let get_adjust_workers_msg pos gs =
 let receive_observing c t msg_r gs =
   if c = Save then
     begin
-      GameState.save gs;
+      save gs;
       msg_r := "Game saved."
     end;
   let gs' = match c with
-    | Step -> GameState.step gs
+    | Step -> step gs
     | _ -> gs in
   let t' = {
     t with act = match c with
@@ -198,34 +219,26 @@ let receive_observing c t msg_r gs =
       | _ -> Observing
   } in (t',gs')
 
-let in_bounds (width,height) (x,y) =
-  (x >= 0) && (x < width) && (y >= 0) && (y < height)
-
-let max_assign_type (btype:GameData.building_type) gs =
-  let gd = GameState.get_game_data gs in
-  let max_workers = GameData.max_workers btype gd in
-  GameState.unassigned_workers gs |> List.length
+let max_assign_type (btype:building_type) gs =
+  let gd = get_game_data gs in
+  let max_workers = max_workers btype gd in
+  unassigned_workers gs |> List.length
   |> min max_workers
 
-let max_assign (b:GameState.building) gs =
-  let gd = GameState.get_game_data gs in
-  let max_workers = GameData.max_workers b.building_type gd in
-  GameState.unassigned_workers gs |> List.length
+let max_assign (b:building) gs =
+  let gd = get_game_data gs in
+  let max_workers = max_workers b.building_type gd in
+  unassigned_workers gs |> List.length
   |> min (max_workers - (b.workers |> List.length))
 
 
 let receive_placing_workers c amt btype pos t _ gs =
   let limit = max_assign_type btype gs in
-  let amt' = wrap (limit+1) (
-      match c with
-      | Up -> amt+1
-      | Down -> amt-1
-      | _ -> amt
-    ) in
+  let amt' = wrap_control (limit+1) amt c in
   let gs' = match c with
     | Select ->
-      GameState.place_building btype pos gs
-      |> GameState.assign_workers_c pos amt'
+      place_building btype pos gs
+      |> assign_workers_c pos amt'
     | _ -> gs
   in let t' = {
       t with
@@ -234,27 +247,19 @@ let receive_placing_workers c amt btype pos t _ gs =
         | _ -> Placing (AssignWorkers amt', btype, pos)
     } in (t',gs')
 
-let receive_placing_location c btype (x,y) t _ gs =
-  let pos' = 
-    let move = match c with
-      | Up -> (x,y-1)
-      | Down -> (x,y+1)
-      | Left -> (x-1,y)
-      | Right -> (x+1,y)
-      | _ -> (x,y) in
-    if in_bounds (GameState.get_bounds gs) move then move else (x,y)
-  in
+let receive_placing_location c btype pos t _ gs =
+  let pos' = move_control pos gs c in
   let t' = {
     t with act = match c with
       | Cancel -> Observing
-      | Select when GameState.can_place_building_at btype (x,y) gs ->
+      | Select when can_place_building_at btype pos gs ->
         Placing (AssignWorkers 0,btype,pos')
       | Up | Down | Left | Right -> Placing (PickLocation,btype,pos')
       | _ -> t.act
   } in (t',gs)
 
 let receive_picking c n t _ gs =
-  let types = gs |> GameState.get_game_data |> GameData.building_types in
+  let types = gs |> get_game_data |> building_types in
   let n' = wrap
       (List.length types) 
       (match c with
@@ -266,7 +271,7 @@ let receive_picking c n t _ gs =
   let t' = {
     t with act = match c with
       | Cancel -> Observing
-      | Select when GameState.meets_rsc_reqs btype gs ->
+      | Select when meets_rsc_reqs btype gs ->
         Placing (PickLocation, btype, center_of_map gs)
       | _ -> BuildingPicker n'
   }
@@ -278,22 +283,14 @@ let adjust_cmd_to_state : command -> adjust_workers_state = function
   | _ -> failwith "impossible"
 
 
-let receive_inspect c (x,y) t _ gs =
-  let pos' = 
-    let move = match c with
-      | Up -> (x,y-1)
-      | Down -> (x,y+1)
-      | Left -> (x-1,y)
-      | Right -> (x+1,y)
-      | _ -> (x,y) in
-    if in_bounds (GameState.get_bounds gs) move then move else (x,y)
-  in
+let receive_inspect c pos t _ gs =
+  let pos' = move_control pos gs c in
   let t' = {
     t with act = match c with
       | Cancel -> Observing
       | Assign | Unassign ->
-        begin match GameState.get_building_at (x,y) gs with
-          | Some _ -> AdjustWorkers (adjust_cmd_to_state c, (x,y), 0)
+        begin match get_building_at pos gs with
+          | Some _ -> AdjustWorkers (adjust_cmd_to_state c, pos, 0)
           | None -> t.act
         end
       | _ -> Inspecting pos'
@@ -301,21 +298,16 @@ let receive_inspect c (x,y) t _ gs =
   (t',gs)
 
 let receive_adjust_workers c (state:adjust_workers_state) pos amt t _ gs =
-  let b = GameState.get_building_at pos gs |> Option.get in
+  let b = get_building_at pos gs |> Option.get in
   let limit = match state with
     | Assign -> max_assign b gs
     | Unassign -> List.length b.workers in
-  let amt' = wrap (limit+1) (
-      match c with
-      | Up -> amt+1
-      | Down -> amt-1
-      | _ -> amt
-    ) in
+  let amt' = wrap_control (limit+1) amt c in
   let gs' = match c with
     | Select ->
       begin match state with 
-        | Assign -> GameState.assign_workers_c pos amt' gs
-        | Unassign -> GameState.unassign_workers_c pos amt' gs
+        | Assign -> assign_workers_c pos amt' gs
+        | Unassign -> unassign_workers_c pos amt' gs
       end
     | _ -> gs
   in let t' = { t with
@@ -356,7 +348,7 @@ let receive_command c t gs =
   begin match input.act with
     | Inspecting pos -> msg_r := get_inspect_msg pos gs
     | BuildingPicker n ->
-      let types = gs |> GameState.get_game_data |> GameData.building_types in
+      let types = gs |> get_game_data |> building_types in
       msg_r := get_building_pick_msg (List.nth types n) gs
     | Placing (PickLocation, btype,_) ->
       msg_r := get_building_place_msg btype gs

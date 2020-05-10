@@ -1,3 +1,4 @@
+open Lib
 open ANSITerminal
 
 let read_char () =
@@ -30,12 +31,9 @@ let char_to_command c =
 
 
 let rec play in_state gs =
-  print_endline "start";
   Renderer.draw in_state gs;
-  print_endline "rendered";
   let c = read_char () |> char_to_command in
   let (in_state', gs') = Input.receive_command c in_state gs in
-  print_endline "received";
   match in_state'.act with
   | Quit -> exit 0
   | _ ->

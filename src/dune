@@ -1,6 +1,24 @@
-(executables
-  (names main stateTest)
-  (libraries ANSITerminal str yojson oUnit))
+(executable
+  (name main)
+  (public_name main)
+  (package camlished)
+  (modules main)
+  (libraries lib))
+
+
+(executable
+ (name stateTest)
+ (public_name stateTest)
+ (modules stateTest)
+ (libraries lib))
+
+(library
+  (name lib)
+  (public_name camlished.lib)
+  (modules gameData gameState mapGenerator perlin renderer Input names)
+  (libraries ANSITerminal str yojson oUnit)
+)
+
 
 (env
   (dev
