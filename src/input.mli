@@ -1,14 +1,14 @@
-type game = Gamestate.t
+type game = GameState.t
 
 type placing_state = PickLocation | AssignWorkers of int
 type adjust_workers_state = Assign | Unassign
 
 type action = 
   | Observing
-  | Placing of (placing_state * GameData.building_type * Gamestate.coordinates)
+  | Placing of (placing_state * GameData.building_type * GameState.coordinates)
   | BuildingPicker of int
-  | Inspecting of Gamestate.coordinates
-  | AdjustWorkers of (adjust_workers_state * Gamestate.coordinates * int)
+  | Inspecting of GameState.coordinates
+  | AdjustWorkers of (adjust_workers_state * GameState.coordinates * int)
   | QuitConfirm
   | Quit
 

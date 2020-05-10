@@ -1,6 +1,6 @@
 open OUnit2
 open Yojson.Basic.Util
-open Gamestate
+open GameState
 open GameData
 
 (* Test Plan:
@@ -31,7 +31,7 @@ A combination of manual testing of the full game and unit testing of
 individual features has ensured the overall correctness of our system. *)
 
 let j = "src/sampleSavedState.json" |> Yojson.Basic.from_file |> 
-        Gamestate.from_json_testing
+        GameState.from_json_testing
 
 (* source: a2 *)
 let cmp_set_like_lists lst1 lst2 =
@@ -233,13 +233,13 @@ let population_tests = [
       (assert_equal (j |> population) 7));
   "List of all residents" >:: (fun _ ->
       assert (cmp_set_like_lists
-        (Gamestate.all_residents j) (all_residents)));
+        (GameState.all_residents j) (all_residents)));
   "List of assigned workers" >:: (fun _ ->
       assert (cmp_set_like_lists
-        (Gamestate.assigned_workers j) (assigned_workers)));
+        (GameState.assigned_workers j) (assigned_workers)));
   "List of unassigned workers" >:: (fun _ ->
       assert (cmp_set_like_lists
-        (Gamestate.unassigned_workers j) (unassigned_workers)));
+        (GameState.unassigned_workers j) (unassigned_workers)));
   "Residents of tent 1" >:: (fun _ ->
       assert (cmp_set_like_lists  
                 (unwrap_building j (5,6) |> building_residents)
@@ -265,7 +265,7 @@ let population_tests = [
       (all_residents)));
   "Unassign two worker and everyone should be unemployed" >:: (fun _ ->
       assert (cmp_set_like_lists
-        (unassign_workers_c (3,2) 2 j |> Gamestate.unassigned_workers)
+        (unassign_workers_c (3,2) 2 j |> GameState.unassigned_workers)
         (all_residents)));
   "Assign workers to non-building raises exn" >:: (fun _ ->
       assert_raises IllegalWorkerAssignment

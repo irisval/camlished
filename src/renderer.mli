@@ -1,5 +1,5 @@
 type input = Input.t
-type game = Gamestate.t
+type game = GameState.t
 
 (** [draw input game] clears the screen and draws the game with [game] 
     and the input state [input].*)

@@ -1,7 +1,7 @@
 type input = Input.t
-type game = Gamestate.t
+type game = GameState.t
 
-open Gamestate
+open GameState
 open GameData
 open ANSITerminal
 
@@ -24,7 +24,7 @@ let char_of_building = function
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
 let char_of_tile tile gs =
-  let season = Gamestate.season gs in
+  let season = GameState.season gs in
   let on_grass = match season with 
     | Winter -> on_white
     | Fall -> on_yellow
@@ -66,10 +66,10 @@ let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs =
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
 let char_at pos input gs =
-  let base = match Gamestate.get_building_type_at pos gs
+  let base = match GameState.get_building_type_at pos gs
     with
     | Some b -> char_of_building b
-    | None -> char_of_tile (Gamestate.tile_rep_at pos gs) gs
+    | None -> char_of_tile (GameState.tile_rep_at pos gs) gs
   in
   let over = input_map_overlay base pos input gs in
   match over with 
@@ -99,7 +99,7 @@ let add_border arr width =
 (**[text_map input gs] gives the text representation of the map in [gs] 
    while in input state [input].*)
 let text_map input gs =
-  let bounds = Gamestate.get_bounds gs in
+  let bounds = GameState.get_bounds gs in
   let width = fst bounds in
   let height = snd bounds in
   let draw_row y =
@@ -188,9 +188,9 @@ let add_side_info x y gs arr =
       let line' = line + 2 in
       add_resources line' k arr
   in
-  let pop = Gamestate.population gs in
-  let max_pop = Gamestate.max_population gs in
-  let unassigned = Gamestate.unassigned_workers gs |> List.length in
+  let pop = GameState.population gs in
+  let max_pop = GameState.max_population gs in
+  let unassigned = GameState.unassigned_workers gs |> List.length in
   let pop_text =
     "population: " ^ (string_of_int pop) ^"/"^(string_of_int max_pop) in
   let unassigned_text =
@@ -203,7 +203,7 @@ let add_side_info x y gs arr =
 let add_message y style msg arr = add_text 0 y (msg |> style_string style) arr
 
 let add_building_picker n y gs arr =
-  let types = gs |> Gamestate.get_game_data |> GameData.building_types in
+  let types = gs |> GameState.get_game_data |> GameData.building_types in
   let selected = List.nth types n in
   add_text 0 y
     (types
@@ -231,17 +231,17 @@ let add_worker_setter act y amt arr =
 
 let add_top_info x y width gs arr = 
   let add_turn arr = 
-    let s = "Turn: "^(Gamestate.turns gs |> string_of_int) in
+    let s = "Turn: "^(GameState.turns gs |> string_of_int) in
     add_text x y (style_string [yellow] s) arr
   in
   let add_yr_season arr =
     let s = 
-      (match Gamestate.season gs with
+      (match GameState.season gs with
        | Summer -> "Summer"
        | Spring -> "Spring"
        | Fall -> "Fall"
        | Winter -> "Winter")
-      ^" "^(Gamestate.year gs + 2020 |> string_of_int)
+      ^" "^(GameState.year gs + 2020 |> string_of_int)
     in add_text (x + width - (String.length s)) y (style_string [yellow] s) arr
   in
   arr|> add_turn|> add_yr_season
@@ -260,7 +260,7 @@ let print_2d o =
 
 
 let draw_output input gs = 
-  let (width,height) = Gamestate.get_bounds gs in
+  let (width,height) = GameState.get_bounds gs in
   let output = ref (text_map input gs) in
   let map_top = 0 in
   let map_left = 0 in
@@ -269,12 +269,12 @@ let draw_output input gs =
   output := 
     Array.append (Array.make 1 []) !output
     |> add_side_info (map_right + 3) 1 gs
-    |> add_text (width/2 - 4) 0 (style_string [Bold] (Gamestate.world_name gs))
+    |> add_text (width/2 - 4) 0 (style_string [Bold] (GameState.world_name gs))
     |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
     |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg
     |> add_message (map_bottom+4) []
-      (String.concat "\n" (Gamestate.read_log ()))
+      (String.concat "\n" (GameState.read_log ()))
     |> (
       fun o -> match input.act with
         | BuildingPicker n ->
@@ -296,8 +296,8 @@ let draw (input:Input.t) gs =
 let you_died input gs =
   let text1 = "Game over! Everyone died :(" in
   let text2 = "You survived "
-              ^ (Gamestate.turns gs |> string_of_int) ^ " turns."in
-  let (width,height) = Gamestate.get_bounds gs in
+              ^ (GameState.turns gs |> string_of_int) ^ " turns."in
+  let (width,height) = GameState.get_bounds gs in
   let output = ref (draw_output input gs) in
   let map_top = 0 in
   let map_left = 0 in

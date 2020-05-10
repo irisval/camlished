@@ -34,14 +34,14 @@ let rec play in_state gs =
   match in_state'.act with
   | Quit -> exit 0
   | _ ->
-    if Gamestate.alive gs then play in_state' gs'
+    if GameState.alive gs then play in_state' gs'
     else Renderer.you_died in_state' gs'; exit 0
 
 (** [load_saved_data f] reads in the data file t [f]. Gives an error if [f] is
     either not found or has an invalid JSON representation. *)
 let load_saved_data f =
   try 
-    let gs = (f |> Yojson.Basic.from_file |> Gamestate.from_json) in
+    let gs = (f |> Yojson.Basic.from_file |> GameState.from_json) in
     play Input.starting gs
   with
   | Yojson.Json_error _ -> 
@@ -61,7 +61,7 @@ let rec pick_game () =
     ANSITerminal.(print_string [green] "Please enter the name of your world!\n");
       print_endline "";
     let name = read_line () in 
-    let gs = Gamestate.initial_state name in play Input.starting gs
+    let gs = GameState.initial_state name in play Input.starting gs
   | Load ->
     ANSITerminal.(print_string [green]
                     "\nPlease enter the location of your game data.
