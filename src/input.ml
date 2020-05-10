@@ -16,6 +16,8 @@ type t = {
 }
 
 type command = 
+  | New
+  | Load
   | Up
   | Down
   | Left
@@ -31,9 +33,10 @@ type command =
   | Unrecognized
 
 let starting = {
-  msg = "Welcome to Camlished!";
+  msg = "Welcome to Camlished. Best of luck growing your society!";
   act = Observing
 }
+
 
 let controls_text t =
   let pairs = match t.act with

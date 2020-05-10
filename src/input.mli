@@ -18,6 +18,8 @@ type t = {
 (** Represents input command types that modify input state.
     Input commands are mapped to one or more keys on keyboard.*)
 type command = 
+  | New
+  | Load
   | Up
   | Down
   | Left
