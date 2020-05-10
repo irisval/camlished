@@ -96,17 +96,32 @@ let get_inspect_msg pos gs =
   let building_msg (b:Gamestate.building) =
     let max_workers = GameData.max_workers b.building_type gd in
     let current_workers = List.length b.workers in
+    let show_workers = max_workers > 0 in
+    let max_residents = GameData.max_residents b.building_type gd in
+    let current_residents = List.length b.residents in
+    let show_residents = max_residents > 0 in
+    let resources = "" in
+    let producing = "per turn" in
+    let consuming = Some "" in
     b.building_type^": "^
-    "producing"
-    (* ^"TODO" *)
-    ^" per turn."
-    ^" "
-    ^"Max workers: "
-    ^string_of_int max_workers
-    ^". "
-    ^"Current workers: "
-    ^string_of_int current_workers
-    ^"." 
+    "producing "
+    ^producing
+    |> (fun e ->
+        match consuming with
+        | Some x -> e^" for "^x
+        | None -> e
+      )
+    |> (fun e -> e^".")
+    |> (fun e -> 
+        if show_workers then
+          e^" Workers: "
+          ^string_of_int current_workers^"/"^string_of_int max_workers^"."
+        else e)
+    |> (fun e -> 
+        if show_residents then
+          e^" Residents: "
+          ^string_of_int current_residents^"/"^string_of_int max_residents^"."
+        else e) 
   in
   match Gamestate.get_building_at pos gs with
   | Some b -> building_msg b
@@ -115,12 +130,21 @@ let get_inspect_msg pos gs =
 let get_building_pick_msg btype gs =
   let gd = Gamestate.get_game_data gs in
   let placement_costs = GameData.rsc_requirements btype gd in
+  let min_workers = GameData.min_req_workers btype gd in
   let write (b:GameData.requirement) =
     (string_of_int b.amount)^" "^b.resource in
   "Requires: "
   ^ match placement_costs with
   | [] -> "Nothing"
-  | h::k -> List.fold_left (fun acc b -> acc ^ ", " ^ write b) (write h) k
+  | h::k ->
+    List.fold_left (fun acc b -> acc ^ ", " ^ write b) (write h) k ^"."
+    (* |> TODO: show placement requirement? *)
+    |> (fun e -> 
+        if min_workers > 0 then
+          e^" Minimum workers: "
+          ^string_of_int min_workers^"."
+        else e^".")
+    |> (fun e -> e)
 
 let get_assign_workers_msg btype gs =
   let gd = Gamestate.get_game_data gs in
@@ -152,9 +176,22 @@ let receive_observing c t msg_r gs =
 let in_bounds (width,height) (x,y) =
   (x >= 0) && (x < width) && (y >= 0) && (y < height)
 
+let max_assign_type (btype:GameData.building_type) gs =
+  let gd = Gamestate.get_game_data gs in
+  let max_workers = GameData.max_workers btype gd in
+  Gamestate.unassigned_workers gs |> List.length
+  |> min max_workers
+
+let max_assign (b:Gamestate.building) gs =
+  let gd = Gamestate.get_game_data gs in
+  let max_workers = GameData.max_workers b.building_type gd in
+  Gamestate.unassigned_workers gs |> List.length
+  |> min (max_workers - (b.workers |> List.length))
+
 
 let receive_placing_workers c amt btype pos t msg_r gs =
-  let amt' = wrap ((Gamestate.unassigned_workers gs |> List.length)+1) (
+  let limit = max_assign_type btype gs in
+  let amt' = wrap (limit+1) (
       match c with
       | Up -> amt+1
       | Down -> amt-1
@@ -239,11 +276,9 @@ let receive_inspect c (x,y) t msg_r gs =
   (t',gs)
 
 let receive_adjust_workers c (state:adjust_workers_state) pos amt t msg_r gs =
-  let b = match Gamestate.get_building_at pos gs with
-    | Some x -> x
-    | None -> failwith "impossible" in
+  let b = Gamestate.get_building_at pos gs |> Option.get in
   let limit = match state with
-    | Assign -> Gamestate.unassigned_workers gs |> List.length
+    | Assign -> max_assign b gs
     | Unassign -> List.length b.workers in
   let amt' = wrap (limit+1) (
       match c with

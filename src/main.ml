@@ -33,6 +33,7 @@ let rec play in_state gs =
   if is_quit then exit 0 else
     let (in_state', gs') = Input.receive_command c in_state gs in
     if Gamestate.alive gs then play in_state' gs'
+    else Renderer.you_died in_state' gs'
 
 (** [load_saved_data f] reads in the data file t [f]. Gives an error if [f] is
     either not found or has an invalid JSON representation. *)
