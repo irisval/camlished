@@ -11,6 +11,8 @@ all:
 	$(DUNE) build src/main.exe
 	$(DUNE) build src/stateTest.exe
 
+docs:
+	$(DUNE) build @doc
 exec:
 	$(DUNE) exec src/main.exe
 

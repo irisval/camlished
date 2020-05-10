@@ -79,6 +79,13 @@ let json_tile j = {
      j |> member "y coordinate" |>  to_int)
 }
 
+(** [json_game_data gd_file] tries to load game data from [gd_file] *)
+let json_game_data gd_file =
+  try
+    gd_file |> Yojson.Basic.from_file |> GameData.from_json
+  with
+  | Yojson.Json_error _ -> failwith "Error parsing game data file."
+
 (** [user_data j] constructs a gamestate from [j] *)
 let user_data j = {
   world_name = j |> member "world name" |> to_string |> String.trim;
@@ -86,16 +93,15 @@ let user_data j = {
   resources = j |> member "resources" |> to_list |> List.map json_resource;
   buildings = j |> member "buildings" |> to_list |> List.map json_building;
   tiles = j |> member "tiles" |> to_list |> List.map json_tile;
-  game_data =
-    try
-      "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
-    with
-    | Yojson.Json_error _ -> failwith "Error parsing game data file."
+  game_data = json_game_data "src/sampleGameData.json"
 }
 
-(** [from_json j] turns a user game data file into a gamestate *)
 let from_json j = try user_data j
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
+
+let from_json_testing j =
+  let j' = from_json j in
+  { j' with game_data = json_game_data "src/sampleGameData.json" }
 
 (** [resources_to_json rsc_lst] gives the json string format of the resources
     in [rsc_lst] *)
@@ -142,7 +148,6 @@ let tiles_to_json (tile_lst : tile list) : string =
   let strs : string list = List.map convert tile_lst in 
   String.concat "," strs
 
-(** [save] saves the current gamestate [st] to a data file*)
 let save (st:t) = 
   match st with 
   | {world_name=w;
@@ -162,7 +167,7 @@ let save (st:t) =
     close_out oc
 
 (* ====== Block: State operations ====== *)
-let get_random  gd : coordinates =
+let get_random gd : coordinates =
   let x = Random.int (fst (GameData.get_bounds gd)) in 
   let y = Random.int (snd (GameData.get_bounds gd)) in 
   (x, y)
@@ -182,7 +187,7 @@ let initial_tents coor1 coor2 : building list =
       building_type = "tent";
       coordinates = coor2;
       workers = [];
-      residents = ["Easter"; "Bunny"]
+      residents = ["Jack"; "Frost"]
     }
   ]
 
@@ -202,6 +207,9 @@ let initial_state (name:string) =
   {world_name=name; turn_id=0; resources= [{id="food"; amount=10}]; 
    buildings= initial_tents t1 t2;
    tiles=set_grass tl [t1; t2]; game_data = game_data}
+
+let world_name st = 
+  st.world_name
 
 let turns st =
   st.turn_id

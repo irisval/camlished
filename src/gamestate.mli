@@ -51,12 +51,18 @@ val read_log : unit -> string list
     Requires: [j] is a valid JSON game state representation. *)
 val from_json : Yojson.Basic.t -> t
 
+(** [from_json_testing j] is the user data that [j] represents, with test dt
+    Requires: [j] is a valid JSON game state representation. *)
+val from_json_testing : Yojson.Basic.t -> t
+
 (** [save st] saves the game by writing the game state to the data file. *)
 val save : t -> unit
 
 (** [initial_state name] gives a randomly generated initial game state. *)
 val initial_state : string -> t
 
+(** [world_name st] gives the name of the world associated with [st] *)
+val world_name : t -> string
 (** [update_rsc u_rsc st] updates the resource list in [st] with the
     resource type and amount associated with [u_rsc].
     Creates new resource if [u_rsc] not found. 

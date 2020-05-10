@@ -269,7 +269,7 @@ let draw_output input gs =
   output := 
     Array.append (Array.make 1 []) !output
     |> add_side_info (map_right + 3) 1 gs
-    |> add_text (width/2 - 4) 0 (style_string [Bold] "Camlished")
+    |> add_text (width/2 - 4) 0 (style_string [Bold] (Gamestate.world_name gs))
     |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
     |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg

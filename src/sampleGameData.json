@@ -9,9 +9,9 @@
   ],
   "width": 50,
   "height": 20,
-  "birth rate": 0.6,
-  "death rate": 0.10,
-  "death rate starving": 0.1, 
+  "birth rate": 0.5,
+  "death rate": 0.5,
+  "death rate starving": 0.6, 
   "death rate winter": 0.8,
   "building properties": [
     {
