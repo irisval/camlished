@@ -193,6 +193,7 @@ let placement_requirements bt dt =
 let active_generation bt dt = 
   (properties bt dt).active_generation
 
+
 let max_rsc_output bt dt =
   (properties bt dt).max_rsc_output
 

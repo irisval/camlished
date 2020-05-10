@@ -102,6 +102,7 @@ let people_to_json (people : person list) : string =
     List.map (fun p -> String.concat "" ["\""; p; "\""]) people in 
   String.concat "," p_str
 
+
 let buildings_to_json (bg_lst : building list) : string = 
   let convert = function
     | {building_type=b; coordinates = c; workers = w; residents = r} -> 
@@ -356,13 +357,10 @@ let update_rsc (u_rsc : resource) st : t =
     | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
   {st with resources = update st.resources []}
 
-
 (** [worker_rsc_output bt base_output st] gives the amount of resource that 
     would be produced (assuming that input reqs are met) depending on the worker
     properties of [bt], the amount of workers in [st], and the [base_output] of
     the resource being produced *)
-(* TODO: clean up *)
-
 let worker_rsc_output (b:building) base_output st = 
   let bt = b.building_type in 
   let num_workers = List.length (building_workers b) in 
@@ -378,11 +376,18 @@ let worker_rsc_output (b:building) base_output st =
     then max_rsc_output bt st.game_data
     else ((int_of_float a) + base_output)
 
+(* [sufficient_workers b st] gives whether [b] has enough buildings to 
+produce resources *)
+let sufficient_workers (b:building) st = 
+  let num_workers = List.length (building_workers b) in 
+  let min_workers = min_req_workers b.building_type st.game_data in
+  num_workers >= min_workers
 
 let building_consumption_gen (b:building) st = 
   let gen_lst = GameData.consumption_generation b.building_type st.game_data in
   List.fold_left (fun st' g ->
-      if (get_rsc_amt g.input_resource st') >= g.input_amount then
+      if (get_rsc_amt g.input_resource st') >= g.input_amount &&
+        sufficient_workers b st then
         let input_st' = 
           (update_rsc {id=g.input_resource; amount=g.input_amount * -1} st') in 
         let new_amt = worker_rsc_output b g.output_amount st in 
@@ -396,6 +401,24 @@ let building_active_gen (b:building) st =
       let new_amt = worker_rsc_output b g.output st in 
       update_rsc {id=g.resource; amount=new_amt} st') st gen_lst 
 
+let active_gen_rsc_amt (b:building) st = 
+  let gen_lst = GameData.active_generation b.building_type st.game_data in
+  List.fold_left (fun a (g:active_generation) -> 
+      let new_amt = worker_rsc_output b g.output st in 
+       {id=g.resource; amount=new_amt}::a
+  ) [] gen_lst
+
+let con_gen_rsc_amt (b:building) st = 
+  let gen_lst = GameData.consumption_generation b.building_type st.game_data in
+  List.fold_left (fun a g ->
+      if (get_rsc_amt g.input_resource st) >= g.input_amount &&
+        sufficient_workers b st then
+        let input_req = {id=g.input_resource; amount=g.input_amount * -1} in 
+        let new_amt = worker_rsc_output b g.output_amount st in 
+        let output_req = {id=g.output_resource; amount= new_amt}  in 
+        (input_req, output_req)::a
+      else a)
+    [] gen_lst
 
 (** [step_buildings buildings resources] is the state with updated resources
     after stepping through all of the buildings and executing their resource
@@ -406,7 +429,6 @@ let step_buildings st =
       building_consumption_gen b active_st') st st.buildings
 
 (* life & death *)
-
 let max_population st =
   List.fold_left (fun acc b ->
       acc + (max_residents b.building_type st.game_data)) 0 st.buildings
