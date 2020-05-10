@@ -151,7 +151,7 @@ let in_bounds (width,height) (x,y) =
 
 
 let receive_placing_workers c amt btype pos t msg_r gs =
-  let amt' = wrap (Gamestate.unassigned_workers gs |> List.length) (
+  let amt' = wrap ((Gamestate.unassigned_workers gs |> List.length)+1) (
       match c with
       | Up -> amt+1
       | Down -> amt-1
@@ -242,7 +242,7 @@ let receive_adjust_workers c (state:adjust_workers_state) pos amt t msg_r gs =
   let limit = match state with
     | Assign -> Gamestate.unassigned_workers gs |> List.length
     | Unassign -> List.length b.workers in
-  let amt' = wrap limit (
+  let amt' = wrap (limit+1) (
       match c with
       | Up -> amt+1
       | Down -> amt-1

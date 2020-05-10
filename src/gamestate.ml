@@ -131,8 +131,13 @@ let get_random  gd : coordinates =
   let y = Random.int (snd (GameData.get_bounds gd)) in 
   (x, y)
 
-let set_grass tile_lst tile : tile list = 
-  List.filter (fun t -> t.coordinates <> tile.coordinates) tile_lst
+let set_grass tile_lst coor_lst : tile list = 
+  List.filter (fun t -> not (List.mem t.coordinates coor_lst)) tile_lst
+
+let initial_tents coor1 coor2 : building list =
+  [{building_type= "tent"; coordinates=coor1; workers=[]; residents=["Bryan";"Changyuan"]};
+  {building_type= "tent"; coordinates=coor2; workers=[];residents=["Iris"; "Jack"]}
+  ]
 
 let initial_state () =
   let game_data= 
@@ -145,11 +150,11 @@ let initial_state () =
              name = e.name;
              coordinates = e.coordinates
            }) in
-  let tent_coor = get_random game_data in 
-  {turn_id=0; resources= []; 
-  buildings=[{building_type= "tent"; coordinates=tent_coor;
-  workers=[];residents=["Jeremy"]};]; 
-  tiles=set_grass tl {name=Grass; coordinates=tent_coor}; game_data = game_data}
+  let t1 = get_random game_data in 
+  let t2 = get_random game_data in 
+  {turn_id=0; resources= [{id="food"; amount=10}]; 
+  buildings= initial_tents t1 t2;
+  tiles=set_grass tl [t1; t2]; game_data = game_data}
 
 let turns st =
   st.turn_id
@@ -282,8 +287,7 @@ let rec add_workers acc amt workers =
 
 let assign_workers_b b amt st =
   let unassigned = unassigned_workers st in
-  if (List.length b.workers) < (max_workers b.building_type st.game_data)
-  && amt <= List.length unassigned then
+  if amt <= List.length unassigned then
     let updated_workers = add_workers b.workers amt unassigned in
     let b' = {b with workers = updated_workers} in
     {st with buildings =
