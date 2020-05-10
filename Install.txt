@@ -1,3 +1,1 @@
-- If dune isn't installed on your system then run "$ opam install dune"
-- "$ make" the first time
 - "$ make exec" to run

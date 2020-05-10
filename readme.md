@@ -1,9 +1,13 @@
 # camlished
-$ opam install dune  
-$ make  
-$ make exec  
+A survival city builder
 
-Controls:
+## How:
+```
+$ make 
+$ make exec
+```
+
+## Controls:
 * w -> Up
 * s -> Down
 * a -> Left
@@ -12,4 +16,5 @@ Controls:
 * space -> Step
 * c -> Cancel
 * b -> Construct building
+* p -> Save
 * q -> Quit

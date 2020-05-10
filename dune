@@ -1,7 +1,0 @@
-(executables
-  (names main stateTest)
-  (libraries ANSITerminal str yojson oUnit))
-
-(env
-  (dev
-    (flags (:standard -warn-error -A))))
