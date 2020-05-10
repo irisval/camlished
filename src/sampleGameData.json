@@ -7,8 +7,8 @@
     "ore",
     "metal"
   ],
-  "width": 10,
-  "height": 10,
+  "width": 50,
+  "height": 20,
   "birth rate": 0.5,
   "death rate": 0.5,
   "death rate starving": 0.6,

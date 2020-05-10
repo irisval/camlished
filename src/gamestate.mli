@@ -8,9 +8,17 @@ type resource
 type person = string
 
 (**  The type representing a building*)
-type building
+
+type building = {
+  building_type: GameData.building_type;
+  coordinates: coordinates;
+  workers: person list;
+  residents: person list;
+}
+
 (** The type representing a tile *)
 type tile
+
 
 (** The type representing a game state *)
 type t
@@ -33,9 +41,8 @@ val from_json : Yojson.Basic.t -> t
 (** [save st] saves the game by writing the game state to the data file. *)
 val save : t -> unit
 
-(** [initial_state t_lst] gives an initial state with the tile data 
-    t_lst when a map has been generated instead of loaded.  *)
-val initial_state : tile list -> t
+(** [initial_state ()] gives a randomly generated initial game state.  *)
+val initial_state : unit -> t
 
 (** [st u_rsc] updates the resource list in [st] with the resource type and 
     amount associated with [u_rsc]. Creates new resource if [u_rsc] not found. 
@@ -111,14 +118,13 @@ val meets_placement_reqs : GameData.building_type -> coordinates -> t -> bool
 val is_valid_bt :  GameData.building_type -> t -> bool
 
 (** [can_place_building bt coor st] gives whether or not a building of type 
-    [bt] can be placed on [coor]. Returns true if [st] meets resource requirements
-    and the tile at [coor] is unoccupied and meets building placement requirements. *)
+    [bt] can be placed on [coor]. Returns true if [st] meets building placement 
+    requirements and the tile at [coor] is unoccupied.  *)
 val can_place_building_at : GameData.building_type -> coordinates  -> t -> bool
 
 (** [place_building building_type coor worker_amt st] places a building of the
     type [building_type] on the state map at the coordinates [coor]. *)
 val place_building : GameData.building_type -> coordinates  -> t -> t
-
 
 (** [population st] gives the numerical population of [st]. *)
 val population : t -> int

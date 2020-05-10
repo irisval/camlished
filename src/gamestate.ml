@@ -125,14 +125,31 @@ let save (st:t) =
 
 
 (* ====== Block: state operations ====== *)
-let initial_state (tl: tile list) = 
-  {turn_id=0; resources= []; buildings=[]; tiles=tl;
-   game_data= 
-     try
-       "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
-     with
-     | Yojson.Json_error _ -> failwith "Error parsing game data file."
-  }
+
+let get_random  gd : coordinates =
+  let x = Random.int (fst (GameData.get_bounds gd)) in 
+  let y = Random.int (snd (GameData.get_bounds gd)) in 
+  (x, y)
+
+let set_grass tile_lst tile : tile list = 
+  List.filter (fun t -> t.coordinates <> tile.coordinates) tile_lst
+
+let initial_state () =
+  let game_data= 
+    try
+      "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+    with
+    | Yojson.Json_error _ -> failwith "Error parsing game data file." in
+  let tl = MapGenerator.generate (GameData.get_bounds game_data)
+           |> List.map (fun (e:MapGenerator.tile) -> {
+             name = e.name;
+             coordinates = e.coordinates
+           }) in
+  let tent_coor = get_random game_data in 
+  {turn_id=0; resources= []; 
+  buildings=[{building_type= "tent"; coordinates=tent_coor;
+  workers=[];residents=["Jeremy"]};]; 
+  tiles=set_grass tl {name=Grass; coordinates=tent_coor}; game_data = game_data}
 
 let turns st =
   st.turn_id
@@ -186,11 +203,12 @@ let is_empty coor st =
   match get_building_at coor st with
   | Some _ -> false
   | None -> match get_tile_at coor st with
-    | Some _ -> false
-    | None -> true
+    | Some Water -> false
+    | _ -> true
 
 (** [make_building building_type coor] returns a building of type
     [building_type] at [coor] *)
+
 let make_building building_type coor =
   {building_type = building_type; coordinates = coor; workers = []; residents = []}
 
@@ -211,7 +229,7 @@ let meets_placement_reqs bt coor st =
       let t = p.tile in
       match p.rule_type with 
       | On ->  tile_rep_at coor st <> t
-      | Next -> let x = fst coor in let y = fst coor in 
+      | Next -> match coor with (x,y) ->
         (tile_rep_at (x-1, y) st <> t) && (tile_rep_at (x+1,y) st <> t)
         && (tile_rep_at (x,y-1) st <> t) && (tile_rep_at (x,y+1) st <> t)
     ) req_lst in 
@@ -236,9 +254,6 @@ let place_building bt coor st =
    game_data = st.game_data}
 
 (* let meets_requirements st building_type st =  *)
-
-let can_place_building building_type coor st =
-  is_empty coor st
 
 (* ====== Block: state population/worker assignment ====== *)
 
@@ -505,10 +520,12 @@ let get_test_metal = {id="metal";amount=0}
 let get_test_ore = {id="ore";amount=0}
 let get_test_stone = {id="stone";amount=3}
 
-
 let get_test_food_type = "food"
 let get_test_planks_type = "planks"
 let get_test_wood_type = "wood"
 let get_test_metal_type = "metal"
 let get_test_ore_type = "ore"
 let get_test_stone_type = "stone"
+
+
+
