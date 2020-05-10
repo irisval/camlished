@@ -7,6 +7,9 @@ exception IllegalWorkerAssignment
 exception IllegalResourceType
 exception IllegalResourceCollection
 
+let data_file = "data/sampleGameData.json"
+let data_file_testing = "data/sampleGameData.json"
+
 (* ====== Block: Define types ====== *)
 type resource = {
   id: resource_type;
@@ -93,7 +96,7 @@ let user_data j = {
   resources = j |> member "resources" |> to_list |> List.map json_resource;
   buildings = j |> member "buildings" |> to_list |> List.map json_building;
   tiles = j |> member "tiles" |> to_list |> List.map json_tile;
-  game_data = json_game_data "src/sampleGameData.json"
+  game_data = json_game_data data_file
 }
 
 let from_json j = try user_data j
@@ -101,7 +104,7 @@ let from_json j = try user_data j
 
 let from_json_testing j =
   let j' = from_json j in
-  { j' with game_data = json_game_data "src/sampleGameData.json" }
+  { j' with game_data = json_game_data data_file_testing }
 
 (** [resources_to_json rsc_lst] gives the json string format of the resources
     in [rsc_lst] *)
@@ -161,7 +164,7 @@ let save (st:t) =
       String.concat "" ["\"buildings\":["; buildings_to_json bgs; "]"] in
     let ti_str = String.concat "" ["\"tiles\":["; tiles_to_json tiles; "]"] in
     let body = String.concat "," [n_str; t_str; r_str; b_str; ti_str] in 
-    let oc = open_out ("src/" ^  (Str.global_replace (Str.regexp " ") "" w)
+    let oc = open_out ("saves/" ^  (Str.global_replace (Str.regexp " ") "" w)
                       ^ ".json") in    
     fprintf oc "%s\n" ( String.concat "" ["{"; body; "}"] );
     close_out oc
@@ -194,7 +197,7 @@ let initial_tents coor1 coor2 : building list =
 let initial_state (name:string) =
   let game_data= 
     try
-      "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
+      data_file |> Yojson.Basic.from_file |> GameData.from_json
     with
     | Yojson.Json_error _ -> failwith "Error parsing game data file." in
   let tl = MapGenerator.generate (GameData.get_bounds game_data)

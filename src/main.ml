@@ -80,7 +80,7 @@ and load_game () =
   Renderer.full_clear ();
   (print_string [green]
      "\nPlease enter the location of your game data.
-      \n Ex: 'src/sampleSavedState.json' ");
+      \n Ex: 'saves/sampleSavedState.json' ");
   begin match read_line () with
     | exception End_of_file -> ()
     | file_name -> load_saved_data file_name

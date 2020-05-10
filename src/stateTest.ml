@@ -31,7 +31,7 @@ see that stepping turns displayed correct information in various scenarios.
 A combination of manual testing of the full game and unit testing of 
 individual features has ensured the overall correctness of our system. *)
 
-let j = "src/sampleSavedState.json" |> Yojson.Basic.from_file |> 
+let j = "saves/sampleSavedState.json" |> Yojson.Basic.from_file |> 
         GameState.from_json_testing
 
 (* source: a2 *)
