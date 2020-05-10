@@ -273,7 +273,8 @@ let draw_output input gs =
     |> add_text 0 (map_bottom+2) (style_string [] (Input.controls_text input))
     |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg
-    |> add_message (map_bottom+4) [] (String.concat "\n" (Gamestate.read_log ()))
+    |> add_message (map_bottom+4) []
+      (String.concat "\n" (Gamestate.read_log ()))
     |> (
       fun o -> match input.act with
         | BuildingPicker n ->

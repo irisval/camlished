@@ -9,6 +9,8 @@ type action =
   | BuildingPicker of int
   | Inspecting of Gamestate.coordinates
   | AdjustWorkers of (adjust_workers_state * Gamestate.coordinates * int)
+  | QuitConfirm
+  | Quit
 
 type t = {
   msg : string;
@@ -29,6 +31,7 @@ type command =
   | Inspect
   | Assign
   | Unassign
+  | Save
   | Quit
   | Unrecognized
 
@@ -45,6 +48,7 @@ let controls_text t =
         ("Space" , "end turn" );
         ("I" , "inspect" );
         ("B" , "place building" );
+        ("P" , "save" );
         ("Q", "quit")
       ]
     | Placing (PickLocation,_,_) ->
@@ -73,6 +77,12 @@ let controls_text t =
         ("C","cancel");
         (";","select")
       ]
+    | QuitConfirm -> 
+      [
+        ("C","cancel");
+        (";","confirm")
+      ]
+    | Quit -> failwith "controls_text invalid for Quit state"
   in
   let write (l,r) = l^" : "^r in
   match pairs with
@@ -125,7 +135,13 @@ let get_inspect_msg pos gs =
   in
   match Gamestate.get_building_at pos gs with
   | Some b -> building_msg b
-  | None -> "Nothing special here"
+  | None ->
+    begin match Gamestate.get_tile_at pos gs with
+    | Some Water -> "Water."
+    | Some Forest -> "Forest."
+    | Some Mountain -> "Mountain."
+    | _ -> "Nothing special here."
+  end
 
 let get_building_pick_msg btype gs =
   let gd = Gamestate.get_game_data gs in
@@ -162,6 +178,11 @@ let get_adjust_workers_msg pos gs =
   ", Current: " ^ (string_of_int current)
 
 let receive_observing c t msg_r gs =
+  if c = Save then
+    begin
+      Gamestate.save gs;
+      msg_r := "Game saved."
+    end;
   let gs' = match c with
     | Step -> Gamestate.step gs
     | _ -> gs in
@@ -170,6 +191,7 @@ let receive_observing c t msg_r gs =
       | PlaceBuilding -> BuildingPicker 0
       | Inspect ->
         let center= center_of_map gs in Inspecting center
+      | Quit -> QuitConfirm
       | _ -> Observing
   } in (t',gs')
 
@@ -300,6 +322,14 @@ let receive_adjust_workers c (state:adjust_workers_state) pos amt t msg_r gs =
         | _ -> AdjustWorkers (state, pos, amt')
     } in (t',gs')
 
+let receive_quit_confirm c (t:t) gs = 
+  let t' = 
+    { t with act = match c with 
+          | Select -> Quit
+          | Cancel -> Observing
+          | _ -> t.act
+    }
+  in (t',gs)
 
 let receive_command c t gs =
   let msg_r = ref "" in
@@ -313,6 +343,8 @@ let receive_command c t gs =
     | Inspecting pos -> receive_inspect c pos t msg_r gs
     | AdjustWorkers (state,pos,amt) ->
       receive_adjust_workers c state pos amt t msg_r gs
+    | QuitConfirm -> receive_quit_confirm c t gs
+    | Quit -> failwith "can't receive command on Quit input state"
   in
   begin match input.act with
     | Inspecting pos ->
@@ -327,6 +359,7 @@ let receive_command c t gs =
                ^" "^get_assign_workers_msg btype gs 
     | AdjustWorkers (_,pos,_) ->
       msg_r := get_adjust_workers_msg pos gs
+    | QuitConfirm -> msg_r := "Are you sure you want to quit?"
     | _ -> ()
   end;
   ( { input with msg = !msg_r },gs)

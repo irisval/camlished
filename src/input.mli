@@ -9,6 +9,8 @@ type action =
   | BuildingPicker of int
   | Inspecting of Gamestate.coordinates
   | AdjustWorkers of (adjust_workers_state * Gamestate.coordinates * int)
+  | QuitConfirm
+  | Quit
 
 type t = {
   msg : string;
@@ -31,6 +33,7 @@ type command =
   | Inspect
   | Assign
   | Unassign
+  | Save
   | Quit
   | Unrecognized
 

@@ -7,7 +7,7 @@ exception IllegalWorkerAssignment
 exception IllegalResourceType
 exception IllegalResourceCollection
 
-(* ====== Block: define types ====== *)
+(* ====== Block: Define types ====== *)
 type resource = {
   id: resource_type;
   amount: int;
@@ -38,7 +38,7 @@ type game_state = {
 
 type t = game_state
 
-(* ====== Block: messaging system ====== *)
+(* ====== Block: Messaging system ====== *)
 let messages = ref []
 
 let clear_log () =
@@ -50,28 +50,35 @@ let log s =
 let read_log () =
   !messages
 
-(* ====== Block: json operations ====== *)
+(* ====== Block Json operations ====== *)
+(** [json_resource j] constructs a single resource from [j] *)
 let json_resource j = {
   id = j |> member "name" |> to_string;
   amount = j |> member "amount" |> to_int;
 }
 
+(** [json_person j] constructs a single person from [j] *)
 let json_person j =
   j |> to_string
 
+(** [json_building j] constructs a single building from [j] *)
 let json_building j = {
   building_type = j |> member "building type" |> to_string;
-  coordinates = (j |> member "x coordinate" |> to_int, j |> member "y coordinate" |> to_int);
+  coordinates = (j |> member "x coordinate" |> to_int, 
+                 j |> member "y coordinate" |> to_int);
   workers = j |> member "workers" |> to_list |> List.map json_person;
   residents = j |> member "residents" |> to_list |> List.map json_person
 }
 
+(* * [coor_json xy_lst] constructs from [j] *)
 let coor_json (xy_lst:int list) = (List.hd xy_lst, List.nth xy_lst 1)
 
+(** [json_tile j] constructs from [j] *)
 let json_tile j = {
   name  = j |> member "tile type" |> to_string |> GameData.tile_type_of_string;
   coordinates = 
-    (j |> member "x coordinate" |>  to_int, j |> member "y coordinate" |>  to_int )
+    (j |> member "x coordinate" |> to_int,
+     j |> member "y coordinate" |>  to_int)
 }
 
 let user_data j = {
@@ -91,8 +98,9 @@ let from_json j = try user_data j
 
 let resources_to_json (rsc_lst: resource list) : string = 
   let convert = function
-    | {id=i; amount=a} -> String.concat "" ["{\"name\":\""; i; "\", \"amount\":";
-                                            (a |> string_of_int);"}"]
+    | {id=i; amount=a} -> String.concat ""
+                            ["{\"name\":\""; i; "\", \"amount\":";
+                             (a |> string_of_int);"}"]
     | _ -> failwith "Malformed State Data." in 
   let strs : string list = List.map convert rsc_lst in 
   String.concat "," strs
@@ -102,13 +110,13 @@ let people_to_json (people : person list) : string =
     List.map (fun p -> String.concat "" ["\""; p; "\""]) people in 
   String.concat "," p_str
 
-
 let buildings_to_json (bg_lst : building list) : string = 
   let convert = function
     | {building_type=b; coordinates = c; workers = w; residents = r} -> 
       String.concat "" ["{\"building type\":\""; b; "\", \"x coordinate\":";
-                        (fst c |> string_of_int); ", \"y coordinate\":"; (snd c |> string_of_int);
-                        ", \"workers\": ["; (people_to_json w); "], \"residents\": ["; 
+                        (fst c |> string_of_int); ", \"y coordinate\":"; 
+                        (snd c |> string_of_int); ", \"workers\": ["; 
+                        (people_to_json w); "], \"residents\": ["; 
                         (people_to_json r); "]}"]
     | _ -> failwith "Malformed State Data." in 
   let strs : string list = List.map convert bg_lst in 
@@ -118,7 +126,8 @@ let tiles_to_json (tile_lst : tile list) : string =
   let convert = function 
     | {name=n; coordinates=c} -> 
       String.concat "" ["{\"tile type\": \""; (GameData.string_of_tile_type n); 
-                        "\", \"x coordinate\": "; (fst c |> string_of_int);  ", \"y coordinate\": "; 
+                        "\", \"x coordinate\": "; (fst c |> string_of_int);
+                       ", \"y coordinate\": "; 
                         (snd c |> string_of_int); "}"]
     | _ -> failwith "Malformed State Data." in 
   let strs : string list = List.map convert tile_lst in 
@@ -127,18 +136,19 @@ let tiles_to_json (tile_lst : tile list) : string =
 let save (st:t) = 
   match st with 
   | {turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
-    let t_str = "\"turn id\": " ^ (t |> string_of_int) in 
-    let r_str = String.concat "" ["\"resources\":["; resources_to_json rscs; "]"] in
-    let b_str = String.concat "" ["\"buildings\":["; buildings_to_json bgs; "]"] in
+    let t_str =
+      "\"turn id\": " ^ (t |> string_of_int) in 
+    let r_str =
+      String.concat "" ["\"resources\":["; resources_to_json rscs; "]"] in
+    let b_str =
+      String.concat "" ["\"buildings\":["; buildings_to_json bgs; "]"] in
     let ti_str = String.concat "" ["\"tiles\":["; tiles_to_json tiles; "]"] in
     let body = String.concat "," [t_str; r_str; b_str; ti_str] in 
     let oc = open_out "src/sampleSavedState.json" in    
     fprintf oc "%s\n" ( String.concat "" ["{"; body; "}"] );
     close_out oc
 
-
-(* ====== Block: state operations ====== *)
-
+(* ====== Block: State operations ====== *)
 let get_random  gd : coordinates =
   let x = Random.int (fst (GameData.get_bounds gd)) in 
   let y = Random.int (snd (GameData.get_bounds gd)) in 
@@ -148,8 +158,19 @@ let set_grass tile_lst coor_lst : tile list =
   List.filter (fun t -> not (List.mem t.coordinates coor_lst)) tile_lst
 
 let initial_tents coor1 coor2 : building list =
-  [{building_type= "tent"; coordinates=coor1; workers=[]; residents=["Bryan";"Changyuan"]};
-  {building_type= "tent"; coordinates=coor2; workers=[];residents=["Iris"; "Jack"]}
+  [
+    {
+      building_type = "tent";
+      coordinates = coor1;
+      workers = [];
+      residents = ["Bryan"; "Changyuan"]
+    };
+    {
+      building_type = "tent";
+      coordinates = coor2;
+      workers = [];
+      residents = ["Easter"; "Bunny"]
+    }
   ]
 
 let initial_state () =
@@ -160,14 +181,14 @@ let initial_state () =
     | Yojson.Json_error _ -> failwith "Error parsing game data file." in
   let tl = MapGenerator.generate (GameData.get_bounds game_data)
            |> List.map (fun (e:MapGenerator.tile) -> {
-             name = e.name;
-             coordinates = e.coordinates
-           }) in
+                 name = e.name;
+                 coordinates = e.coordinates
+               }) in
   let t1 = get_random game_data in 
   let t2 = get_random game_data in 
   {turn_id=0; resources= [{id="food"; amount=10}]; 
-  buildings= initial_tents t1 t2;
-  tiles=set_grass tl [t1; t2]; game_data = game_data}
+   buildings= initial_tents t1 t2;
+   tiles=set_grass tl [t1; t2]; game_data = game_data}
 
 let turns st =
   st.turn_id
@@ -224,11 +245,13 @@ let is_empty coor st =
     | Some Water -> false
     | _ -> true
 
+(* ====== Block: Building and resource operations ====== *)
+
 (** [make_building building_type coor] returns a building of type
     [building_type] at [coor] *)
-
 let make_building building_type coor =
-  {building_type = building_type; coordinates = coor; workers = []; residents = []}
+  {building_type = building_type; coordinates = coor; 
+   workers = []; residents = []}
 
 let get_rsc_amt rt st : int =
   match List.find_opt (fun r -> r.id = rt) st.resources with 
@@ -254,7 +277,8 @@ let meets_placement_reqs bt coor st =
   List.length under = 0
 
 let is_valid_bt bt st = 
-  let b = List.find_opt (fun b -> b = bt) (GameData.building_types st.game_data) in 
+  let b = 
+    List.find_opt (fun b -> b = bt) (GameData.building_types st.game_data) in 
   match b with 
   | Some _ -> true
   | None -> false
@@ -263,17 +287,41 @@ let can_place_building_at bt coor st =
   is_valid_bt bt st && is_empty coor st 
   && meets_placement_reqs bt coor st && meets_rsc_reqs bt st
 
+(** [rsc_check st rsc] checks that [rsc] is defined in the resource types of the 
+    game data in [st] *)
+let rsc_check rsc st =
+  let rsc_lst = st.game_data |> GameData.resource_types in 
+  match List.find_opt (fun r -> r = rsc.id) rsc_lst with 
+  | Some _ -> rsc 
+  | None -> raise IllegalResourceType
+
+let update_rsc (u_rsc : resource) st : t =
+  let u_rsc' = rsc_check u_rsc st in 
+  let rec update (rsc_lst:resource list) (acc:resource list)  = 
+    match rsc_lst with 
+    | r::t -> if r.id = u_rsc'.id 
+              then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
+              else update t (r::acc)
+    | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
+  {st with resources = update st.resources []}
+
+(** [pay_building_cost bt st] gives an updated resource list
+    with the resource cost required to place building with type [bt] in [st] *)
+let pay_building_cost bt (st:t) : resource list  = 
+  let updated = List.fold_left (fun st' (req:requirement) ->
+      update_rsc {id=req.resource; amount=req.amount * -1} st'
+    ) st (rsc_requirements bt st.game_data) in 
+  updated.resources
+
 let place_building bt coor st =
   let b = make_building bt coor in
   {turn_id = st.turn_id;
-   resources = st.resources;
+   resources = pay_building_cost bt st;
    buildings = b::st.buildings;
    tiles = st.tiles;
    game_data = st.game_data}
 
-(* let meets_requirements st building_type st =  *)
-
-(* ====== Block: state population/worker assignment ====== *)
+(* ====== Block: State population/worker assignment ====== *)
 
 let population st =
   List.fold_left (fun acc b -> acc + List.length b.residents) 0 st.buildings
@@ -313,8 +361,8 @@ let assign_workers_c coor amt st =
   | None -> raise IllegalWorkerAssignment
 
 (** [remaining_workers new_len acc worker_list] is [acc]
-    with [new_len] workers from [worker_list]? *)
-let rec remaining_workers new_len acc (worker_lst: person list) : (person list) =
+    with [new_len] workers from [worker_list] *)
+let rec remaining_workers new_len acc worker_lst : (person list) =
   match worker_lst with
   | h::t -> if List.length acc = new_len then acc
     else remaining_workers new_len (h::acc) t
@@ -323,7 +371,9 @@ let rec remaining_workers new_len acc (worker_lst: person list) : (person list) 
 let unassign_workers_b b amt st =
   if amt <= 0 then raise IllegalWorkerAssignment else
     let num_workers = List.length b.workers in
-    let new_num_workers = (if amt > num_workers then raise IllegalWorkerAssignment else num_workers - amt) in
+    let new_num_workers = 
+      if amt > num_workers then raise IllegalWorkerAssignment 
+      else num_workers - amt in
     let workers' = remaining_workers new_num_workers [] b.workers in
     let b' = {b with workers = workers'} in
     {st with buildings =
@@ -339,23 +389,6 @@ let building_residents b =
 
 let building_workers b =
   b.workers
-
-(** [rsc_check st rsc] checks that [rsc] is defined in the resource types of the 
-    game data in [st] *)
-let rsc_check rsc st =
-  let rsc_lst = st.game_data |> GameData.resource_types in 
-  match List.find_opt (fun r -> r = rsc.id) rsc_lst with 
-  | Some _ -> rsc 
-  | None -> raise IllegalResourceType
-
-let update_rsc (u_rsc : resource) st : t =
-  let u_rsc' = rsc_check u_rsc st in 
-  let rec update (rsc_lst:resource list) (acc:resource list)  = 
-    match rsc_lst with 
-    | r::t -> if r.id = u_rsc'.id then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
-      else update t (r::acc)
-    | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
-  {st with resources = update st.resources []}
 
 (** [worker_rsc_output bt base_output st] gives the amount of resource that 
     would be produced (assuming that input reqs are met) depending on the worker
@@ -376,8 +409,8 @@ let worker_rsc_output (b:building) base_output st =
     then max_rsc_output bt st.game_data
     else ((int_of_float a) + base_output)
 
-(* [sufficient_workers b st] gives whether [b] has enough buildings to 
-produce resources *)
+(** [sufficient_workers b st] gives whether [b] has enough buildings to 
+    produce resources *)
 let sufficient_workers (b:building) st = 
   let num_workers = List.length (building_workers b) in 
   let min_workers = min_req_workers b.building_type st.game_data in
@@ -387,7 +420,7 @@ let building_consumption_gen (b:building) st =
   let gen_lst = GameData.consumption_generation b.building_type st.game_data in
   List.fold_left (fun st' g ->
       if (get_rsc_amt g.input_resource st') >= g.input_amount &&
-        sufficient_workers b st then
+         sufficient_workers b st then
         let input_st' = 
           (update_rsc {id=g.input_resource; amount=g.input_amount * -1} st') in 
         let new_amt = worker_rsc_output b g.output_amount st in 
@@ -405,14 +438,14 @@ let active_gen_rsc_amt (b:building) st =
   let gen_lst = GameData.active_generation b.building_type st.game_data in
   List.fold_left (fun a (g:active_generation) -> 
       let new_amt = worker_rsc_output b g.output st in 
-       {id=g.resource; amount=new_amt}::a
-  ) [] gen_lst
+      {id=g.resource; amount=new_amt}::a
+    ) [] gen_lst
 
 let con_gen_rsc_amt (b:building) st = 
   let gen_lst = GameData.consumption_generation b.building_type st.game_data in
   List.fold_left (fun a g ->
       if (get_rsc_amt g.input_resource st) >= g.input_amount &&
-        sufficient_workers b st then
+         sufficient_workers b st then
         let input_req = {id=g.input_resource; amount=g.input_amount * -1} in 
         let new_amt = worker_rsc_output b g.output_amount st in 
         let output_req = {id=g.output_resource; amount= new_amt}  in 
@@ -444,7 +477,8 @@ let living_residents bl : person list =
   List.fold_left (fun acc b -> acc @ b.residents) [] bl
 
 let remove_ppl p l : person list =
-  List.filter (fun n -> (fun boo -> if not boo then log (n ^ " died"); boo) (Random.float 1.0 > p)) l
+  List.filter (fun n -> (fun boo -> if not boo then log (n ^ " died"); boo)
+                  (Random.float 1.0 > p)) l
 
 let death_chance food warmth season st =
   let normal = death_rate st.game_data in
@@ -483,7 +517,7 @@ let new_residents p l : person list =
 let baby_to_building name b st : (bool * building) =
   if List.length b.residents < max_residents b.building_type st.game_data then
     (log (name ^ " was born");
-    (true, {b with residents = name::b.residents}))
+     (true, {b with residents = name::b.residents}))
   else
     (false, b)
 
@@ -529,23 +563,19 @@ let step_population st : t =
 
 let alive st = (population st = 0) |> not
 
-(* Save data file after stepping (testing purposes)
-   let step st =
-   let s =  {step_buildings st with turn_id = st.turn_id + 1} in
-   save s;
-   s *)
-
 let step st =
   clear_log ();
   { (step_buildings st |> step_population)
     with turn_id = st.turn_id + 1 }
 
-
-(* ====== Block: test functions ====== *)
+(* ====== Block: Test functions ====== *)
 let get_bounds st = GameData.get_bounds st.game_data
 
 let get_test_building =
-  {building_type= "tent"; coordinates=(5,6);workers=[];residents=["john doe"; "jane doe"]}
+  {building_type= "tent";
+    coordinates=(5,6);
+    workers=[];
+    residents=["john doe"; "jane doe"]}
 
 let get_test_tile = GameData.Water
 

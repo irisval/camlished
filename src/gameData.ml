@@ -1,6 +1,6 @@
 open Yojson.Basic.Util
 
-(* define types  *)
+(* ====== Block: Define types ====== *)
 type resource_type = string
 type building_type = string
 type bounds = int * int
@@ -36,7 +36,6 @@ type storage = {
   resource: resource_type;
   capacity: int;
 }
-
 
 type building_properties = {
   name: building_type;
@@ -83,8 +82,7 @@ let placement_rule_of_string = function
   | "next" -> Next
   | _ -> failwith "Invalid string to placement rule conversion"
 
-(* read from json *)
-(** Todo: Add json specs *)
+(* ====== Block: Read game data from json ====== *)
 let json_resource j = j |> to_string
 
 let json_requirements j = {
@@ -120,17 +118,23 @@ let json_building j = {
   max_residents = j |> member "max residents" |> to_int;
   max_workers = j |> member "max workers" |> to_int;
   min_req_workers = j |> member "min req workers" |> to_int;
-  requirements = j |> member "requirements" |> to_list |> List.map json_requirements;
-  placement_rules = j |> member "placement rule" |> to_list |> List.map json_placement;
+  requirements = j |> member "requirements" |> to_list 
+    |> List.map json_requirements;
+  placement_rules = j |> member "placement rule" |> to_list 
+    |> List.map json_placement;
   max_rsc_output = j |> member "max rsc output" |> to_int;
-  consumption_generation = j |> member "consumption generation" |> to_list |> List.map json_consumption_gen;
-  active_generation = j |> member "active generation" |> to_list |> List.map json_active_gen;
+  consumption_generation = j |> member "consumption generation" |> to_list
+    |> List.map json_consumption_gen;
+  active_generation = j |> member "active generation" |> to_list 
+    |> List.map json_active_gen;
   storages = j |> member "storage" |> to_list |> List.map json_storage;
 }
 
 let game_data j = {
-  resource_types = j |> member "resource types" |> to_list |> List.map json_resource;
-  building_properties = j |> member "building properties" |> to_list |> List.map json_building;
+  resource_types = j |> member "resource types" |> to_list 
+    |> List.map json_resource;
+  building_properties = j |> member "building properties" |> to_list 
+    |> List.map json_building;
   bounds = (j |> member "width" |> to_int, j |> member "height" |> to_int);
   birth_rate = j |> member "birth rate" |> to_float;
   death_rate = j |> member "death rate" |> to_float;
@@ -141,7 +145,7 @@ let game_data j = {
 let from_json j = try game_data j 
   with Type_error (s, _) -> failwith ("Parsing error: " ^ s)
 
-(* gamedata methods *)
+(* ====== Block: Gamedata properties ====== *)
 let building_types dt =
   List.map (fun b -> b.name) dt.building_properties
 
@@ -160,7 +164,7 @@ let death_rate_starving dt =
 let death_rate_winter dt =
   dt.death_rate_winter
 
-(* gamestate methods *)
+(* ====== Block: Gamedata properties for state ====== *)
 (** [properties b dt] are the building properties for [b] in [dt] *)
 let properties bt dt : building_properties =
   List.find (fun bp -> bp.name = bt) dt.building_properties
@@ -183,12 +187,11 @@ let min_req_workers bt dt =
 let rsc_requirements bt dt =
   (properties bt dt).requirements
 
-let placement_requirements bt dt =
+let placement_requirements bt dt = 
   (properties bt dt).placement_rules
 
 let active_generation bt dt = 
   (properties bt dt).active_generation
-
 
 let max_rsc_output bt dt =
   (properties bt dt).max_rsc_output

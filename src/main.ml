@@ -23,17 +23,19 @@ let char_to_command c =
   | "q" -> Input.Quit
   | "l" -> Input.Load
   | "n" -> Input.New
+  | "p" -> Input.Save
   | _ -> Input.Unrecognized
 
 
 let rec play in_state gs =
   Renderer.draw in_state gs;
   let c = read_char () |> char_to_command in
-  let is_quit = match c with Quit -> true | _ -> false in
-  if is_quit then exit 0 else
-    let (in_state', gs') = Input.receive_command c in_state gs in
+  let (in_state', gs') = Input.receive_command c in_state gs in
+  match in_state'.act with
+  | Quit -> exit 0
+  | _ ->
     if Gamestate.alive gs then play in_state' gs'
-    else Renderer.you_died in_state' gs'
+    else Renderer.you_died in_state' gs'; exit 0
 
 (** [load_saved_data f] reads in the data file t [f]. Gives an error if [f] is
     either not found or has an invalid JSON representation. *)
@@ -43,23 +45,29 @@ let load_saved_data f =
     play Input.starting gs
   with
   | Yojson.Json_error f -> 
-    ANSITerminal.(print_string [red] "Error parsing saved game data. Please make
-     sure that the file is in valid JSON format.")
+    ANSITerminal.(print_string [red]
+                    "Error parsing saved game data.
+Please make sure that the file is in valid JSON format.")
   | Sys_error f -> 
     ANSITerminal.(print_string [red] "File not found.")
 
-let () = 
+let rec pick_game () = 
   ANSITerminal.(print_string [green] "Welcome to Camlished!\n
-  Please press l to load a game file or n to start a new game.\n");
+  Please press 'L' to load a game file or 'N' to start a new game.\n");
   print_endline "";
   let c = read_char () |> char_to_command in 
-  let is_new = match c with New -> true | _ -> false in
-  if is_new then 
+  match c with
+  | New ->
     let gs = Gamestate.initial_state () in play Input.starting gs
-  else 
-    ANSITerminal.(print_string [green] "\nPlease enter the location of your game data.
+  | Load ->
+    ANSITerminal.(print_string [green]
+                    "\nPlease enter the location of your game data.
       \n Ex: 'src/sampleSavedState.json' ");
-    match read_line () with
-    | exception End_of_file -> ()
-    | file_name -> load_saved_data file_name
+    begin match read_line () with
+      | exception End_of_file -> ()
+      | file_name -> load_saved_data file_name
+    end
+  | _ -> ANSITerminal.(print_string [green] "\nPress 'L' or 'N' nerd");
+    pick_game ()
 
+let () = pick_game ()
