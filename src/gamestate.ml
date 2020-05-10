@@ -38,6 +38,18 @@ type game_state = {
 
 type t = game_state
 
+(* ====== Block: messaging system ====== *)
+let messages = ref []
+
+let clear_log () =
+  messages := []
+
+let log s =
+  messages := s::(!messages)
+
+let read_log () =
+  !messages
+
 (* ====== Block: json operations ====== *)
 let json_resource j = {
   id = j |> member "name" |> to_string;
@@ -410,7 +422,7 @@ let living_residents bl : person list =
   List.fold_left (fun acc b -> acc @ b.residents) [] bl
 
 let remove_ppl p l : person list =
-  List.filter (fun _ -> Random.float 1.0 > p) l
+  List.filter (fun n -> (fun boo -> if not boo then log (n ^ " died"); boo) (Random.float 1.0 > p)) l
 
 let death_chance food warmth season st =
   let normal = death_rate st.game_data in
@@ -448,7 +460,8 @@ let new_residents p l : person list =
 
 let baby_to_building name b st : (bool * building) =
   if List.length b.residents < max_residents b.building_type st.game_data then
-    (true, {b with residents = name::b.residents})
+    (log (name ^ " was born");
+    (true, {b with residents = name::b.residents}))
   else
     (false, b)
 
@@ -479,7 +492,7 @@ let eat_food st : t =
     food with
     amount =
       let new_amt = food.amount - (population st) in
-      if new_amt < 0 then 0 else new_amt
+      if new_amt < 0 then (log "\nPopulation starving!"; 0) else new_amt
   } in
   let resources' = List.map (fun r ->
       if r.id = "food" then consumed r else r) st.resources
@@ -500,7 +513,10 @@ let alive st = (population st = 0) |> not
    save s;
    s *)
 
-let step st = { (step_buildings st |> step_population) with turn_id = st.turn_id + 1}
+let step st =
+  clear_log ();
+  { (step_buildings st |> step_population)
+    with turn_id = st.turn_id + 1 }
 
 
 (* ====== Block: test functions ====== *)

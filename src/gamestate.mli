@@ -32,6 +32,14 @@ exception IllegalResourceCollection
 (** Raised in an attempt to assign a worker to a nonexistent building. *)
 exception IllegalWorkerAssignment 
 
+(** [clear_log ()] clears the internal messaging system *)
+val clear_log : unit -> unit
+
+(** [log s] adds [s] to the internal messaging *)
+val log : string -> unit
+
+(** [read_log ()] is the list of messages *)
+val read_log : unit -> string list
 
 (** [from_json j] is the user data that [j] represents.
     Requires: [j] is a valid JSON game state representation. *)
