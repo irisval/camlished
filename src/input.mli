@@ -1,8 +1,12 @@
+(** Type for the state of the game. *)
 type game = GameState.t
 
+(** Type of an building placement state. *)
 type placing_state = PickLocation | AssignWorkers of int
+(** Type of a worker assignment or unassignment state. *)
 type adjust_workers_state = Assign | Unassign
 
+(** Type of an input action. *)
 type action = 
   | Observing
   | Placing of (placing_state * GameData.building_type * GameState.coordinates)
@@ -12,6 +16,7 @@ type action =
   | QuitConfirm
   | Quit
 
+(** Type of an input state. *)
 type t = {
   msg : string;
   act : action;

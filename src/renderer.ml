@@ -172,22 +172,18 @@ let resource_label (name,value) =
   (name ^ ": " ^ string_of_int value)
   |> style_string [magenta]
 
+let rec add_resources x (line:int) r arr = 
+  match r with
+  | [] -> arr
+  | h::k ->
+    let label = resource_label h in
+    let arr = add_text x line label arr in
+    let line' = line + 2 in
+    add_resources x line' k arr
+
 let add_side_info x y gs arr =
   let resources = (get_user_resources gs) in
   let arr = extend ((List.length resources * 2) + y) [] arr in
-  let rec add_resources (line:int) r arr = 
-    match r with
-    | [] -> arr
-    | h::k ->
-      let label = resource_label h in
-      let linetxt' =
-        Array.get arr line
-        |> insert_at x label
-      in
-      Array.set arr line linetxt';
-      let line' = line + 2 in
-      add_resources line' k arr
-  in
   let pop = GameState.population gs in
   let max_pop = GameState.max_population gs in
   let unassigned = GameState.unassigned_workers gs |> List.length in
@@ -198,7 +194,7 @@ let add_side_info x y gs arr =
   add_text x y (style_string [magenta;Bold] pop_text) arr
   |> add_text x (y+2)
     (style_string [magenta;Bold] unassigned_text)
-  |> add_resources (y+4) resources
+  |> add_resources x (y+4) resources
 
 let add_message y style msg arr = add_text 0 y (msg |> style_string style) arr
 
@@ -249,6 +245,11 @@ let add_top_info x y width gs arr =
 
 let hide_cursor () = printf [] "\027[?25l%!"
 
+let full_clear () =
+  erase Screen;
+  hide_cursor ();
+  set_cursor 1 1
+
 (**[print_2d o] prints [o] to the console with each element of [o] as a
    separate line.*)
 let print_2d o =
@@ -262,10 +263,7 @@ let print_2d o =
 let draw_output input gs = 
   let (width,height) = GameState.get_bounds gs in
   let output = ref (text_map input gs) in
-  let map_top = 0 in
-  let map_left = 0 in
-  let map_bottom = height + 3 in
-  let map_right = width + 2 in
+  let map_bottom = height + 3 in let map_right = width + 2 in
   output := 
     Array.append (Array.make 1 []) !output
     |> add_side_info (map_right + 3) 1 gs
@@ -275,21 +273,16 @@ let draw_output input gs =
     |> add_message (map_bottom) [] input.msg
     |> add_message (map_bottom+4) []
       (String.concat "\n" (GameState.read_log ()))
-    |> (
-      fun o -> match input.act with
-        | BuildingPicker n ->
-          add_building_picker n (map_bottom+1) gs o
+    |> (fun o -> match input.act with
+        | BuildingPicker n -> add_building_picker n (map_bottom+1) gs o
         | AdjustWorkers (_,_, amt)
         | Placing (AssignWorkers amt, _, _) ->
           add_worker_setter input.act (map_bottom+1) amt o
-        | _ -> o
-    );
+        | _ -> o );
   !output
 
 let draw (input:Input.t) gs = 
-  erase Screen;
-  hide_cursor ();
-  set_cursor 1 1;
+  full_clear ();
   print_2d (draw_output input gs)
 
 
@@ -299,20 +292,15 @@ let you_died input gs =
               ^ (GameState.turns gs |> string_of_int) ^ " turns."in
   let (width,height) = GameState.get_bounds gs in
   let output = ref (draw_output input gs) in
-  let map_top = 0 in
-  let map_left = 0 in
-  let map_bottom = height + 3 in
-  let map_right = width + 2 in
+  let map_top = 0 in let map_left = 0 in
+  let map_bottom = height + 3 in let map_right = width + 2 in
   let centerx = (map_left + map_right)/2 in
   let x1 = centerx - ((String.length text1)/2) |> max 0 in
   let y1 = (map_top + map_bottom)/2 in
   let x2 = centerx - ((String.length text2)/2) |> max 0 in
   let y2 = y1+1 in
-  output := 
-    (!output)
-    |> add_text x1 y1 (style_string [white;on_red;Bold] text1)
-    |> add_text x2 y2 (style_string [white;on_red;Bold] text2);
-  erase Screen;
-  hide_cursor ();
-  set_cursor 1 1;
+  output := (!output)
+            |> add_text x1 y1 (style_string [white;on_red;Bold] text1)
+            |> add_text x2 y2 (style_string [white;on_red;Bold] text2);
+  full_clear ();
   print_2d !output

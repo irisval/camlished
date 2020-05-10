@@ -1,3 +1,5 @@
+open ANSITerminal
+
 let read_char () =
   let io = Unix.tcgetattr Unix.stdin in
   let () =
@@ -28,13 +30,17 @@ let char_to_command c =
 
 
 let rec play in_state gs =
+  print_endline "start";
   Renderer.draw in_state gs;
+  print_endline "rendered";
   let c = read_char () |> char_to_command in
   let (in_state', gs') = Input.receive_command c in_state gs in
+  print_endline "received";
   match in_state'.act with
   | Quit -> exit 0
   | _ ->
-    if GameState.alive gs then play in_state' gs'
+    if GameState.alive gs' then 
+      play in_state' gs'
     else Renderer.you_died in_state' gs'; exit 0
 
 (** [load_saved_data f] reads in the data file t [f]. Gives an error if [f] is
@@ -51,26 +57,35 @@ Please make sure that the file is in valid JSON format.")
   | Sys_error _ -> 
     ANSITerminal.(print_string [red] "File not found.")
 
-let rec pick_game () = 
-  ANSITerminal.(print_string [green] "Welcome to Camlished!\n
-  Please press 'L' to load a game file or 'N' to start a new game.\n");
+
+
+let rec pick_game () =
+  Renderer.full_clear ();
+  print_string [green] "Welcome to Camlished!\n
+  Please press 'L' to load a game file or 'N' to start a new game.\n";
   print_endline "";
   let c = read_char () |> char_to_command in 
   match c with
-  | New ->
-    ANSITerminal.(print_string [green] "Please enter the name of your world!\n");
-      print_endline "";
-    let name = read_line () in 
-    let gs = GameState.initial_state name in play Input.starting gs
-  | Load ->
-    ANSITerminal.(print_string [green]
-                    "\nPlease enter the location of your game data.
-      \n Ex: 'src/sampleSavedState.json' ");
-    begin match read_line () with
-      | exception End_of_file -> ()
-      | file_name -> load_saved_data file_name
-    end
-  | _ -> ANSITerminal.(print_string [green] "\nPress 'L' or 'N' nerd");
+  | New -> new_game ()
+  | Load -> load_game ()
+  | _ -> (print_string [green] "\nPress 'L' or 'N' nerd");
     pick_game ()
+
+and new_game () = 
+  Renderer.full_clear ();
+  (print_string [green] "Please enter the name of your world!\n");
+  print_endline "";
+  let name = read_line () in 
+  let gs = GameState.initial_state name in play Input.starting gs 
+
+and load_game () =
+  Renderer.full_clear ();
+  (print_string [green]
+     "\nPlease enter the location of your game data.
+      \n Ex: 'src/sampleSavedState.json' ");
+  begin match read_line () with
+    | exception End_of_file -> ()
+    | file_name -> load_saved_data file_name
+  end
 
 let () = pick_game ()
