@@ -51,8 +51,8 @@ val from_json : Yojson.Basic.t -> t
 (** [save st] saves the game by writing the game state to the data file. *)
 val save : t -> unit
 
-(** [initial_state ()] gives a randomly generated initial game state. *)
-val initial_state : unit -> t
+(** [initial_state name] gives a randomly generated initial game state. *)
+val initial_state : string -> t
 
 (** [update_rsc u_rsc st] updates the resource list in [st] with the
     resource type and amount associated with [u_rsc].

@@ -29,6 +29,7 @@ type tile = {
 }
 
 type game_state = {
+  world_name: string;
   turn_id: int;
   resources: resource list;
   buildings: building list;
@@ -80,6 +81,7 @@ let json_tile j = {
 
 (** [user_data j] constructs a gamestate from [j] *)
 let user_data j = {
+  world_name = j |> member "world name" |> to_string |> String.trim;
   turn_id = j |> member "turn id" |> to_int;
   resources = j |> member "resources" |> to_list |> List.map json_resource;
   buildings = j |> member "buildings" |> to_list |> List.map json_building;
@@ -143,7 +145,9 @@ let tiles_to_json (tile_lst : tile list) : string =
 (** [save] saves the current gamestate [st] to a data file*)
 let save (st:t) = 
   match st with 
-  | {turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
+  | {world_name=w;
+    turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
+    let n_str = "\"world name\": \"" ^ w ^ "\"" in
     let t_str =
       "\"turn id\": " ^ (t |> string_of_int) in 
     let r_str =
@@ -151,8 +155,9 @@ let save (st:t) =
     let b_str =
       String.concat "" ["\"buildings\":["; buildings_to_json bgs; "]"] in
     let ti_str = String.concat "" ["\"tiles\":["; tiles_to_json tiles; "]"] in
-    let body = String.concat "," [t_str; r_str; b_str; ti_str] in 
-    let oc = open_out "src/sampleSavedState.json" in    
+    let body = String.concat "," [n_str; t_str; r_str; b_str; ti_str] in 
+    let oc = open_out ("src/" ^  (Str.global_replace (Str.regexp " ") "" w)
+                      ^ ".json") in    
     fprintf oc "%s\n" ( String.concat "" ["{"; body; "}"] );
     close_out oc
 
@@ -181,7 +186,7 @@ let initial_tents coor1 coor2 : building list =
     }
   ]
 
-let initial_state () =
+let initial_state (name:string) =
   let game_data= 
     try
       "src/sampleGameData.json" |> Yojson.Basic.from_file |> GameData.from_json
@@ -194,7 +199,7 @@ let initial_state () =
                }) in
   let t1 = get_random game_data in 
   let t2 = get_random game_data in 
-  {turn_id=0; resources= [{id="food"; amount=10}]; 
+  {world_name=name; turn_id=0; resources= [{id="food"; amount=10}]; 
    buildings= initial_tents t1 t2;
    tiles=set_grass tl [t1; t2]; game_data = game_data}
 
@@ -323,11 +328,9 @@ let pay_building_cost bt (st:t) : resource list  =
 
 let place_building bt coor st =
   let b = make_building bt coor in
-  {turn_id = st.turn_id;
-   resources = pay_building_cost bt st;
-   buildings = b::st.buildings;
-   tiles = st.tiles;
-   game_data = st.game_data}
+  { st with
+    resources = pay_building_cost bt st;
+    buildings = b::st.buildings }
 
 (* ====== Block: State population/worker assignment ====== *)
 

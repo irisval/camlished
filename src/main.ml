@@ -44,11 +44,11 @@ let load_saved_data f =
     let gs = (f |> Yojson.Basic.from_file |> Gamestate.from_json) in
     play Input.starting gs
   with
-  | Yojson.Json_error f -> 
+  | Yojson.Json_error _ -> 
     ANSITerminal.(print_string [red]
                     "Error parsing saved game data.
 Please make sure that the file is in valid JSON format.")
-  | Sys_error f -> 
+  | Sys_error _ -> 
     ANSITerminal.(print_string [red] "File not found.")
 
 let rec pick_game () = 
@@ -58,7 +58,10 @@ let rec pick_game () =
   let c = read_char () |> char_to_command in 
   match c with
   | New ->
-    let gs = Gamestate.initial_state () in play Input.starting gs
+    ANSITerminal.(print_string [green] "Please enter the name of your world!\n");
+      print_endline "";
+    let name = read_line () in 
+    let gs = Gamestate.initial_state name in play Input.starting gs
   | Load ->
     ANSITerminal.(print_string [green]
                     "\nPlease enter the location of your game data.
