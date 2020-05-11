@@ -1,7 +1,9 @@
 # Welcome to Camlished!
+<p float="left">
+  <img src="images/example1.png" alt="Example Start Game" width="300">
+  <img src="images/example2.png" alt="Lost Game" width="300">
+</p>
 
-<img src="images/example1.png" alt="Example Start Game" width="250">
-<img src="images/example2.png" alt="Lost Game" width="250">
 
 In a world where poorly cobbled together pieces of legacy code have led to a collapse in global infrastructure, you and a few other brave souls have decided to become free from the invasion of JavaScript dependencies. You heroes have decided to venture into the depths of Canada and form a society there to recover your strength so that one day, you can fight back with the power of functional programming.
 
@@ -17,7 +19,7 @@ $ make
 $ make exec  
 ```
 
-Controls:
+# Controls:
 * w -> Up
 * s -> Down
 * a -> Left
