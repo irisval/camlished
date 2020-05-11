@@ -63,6 +63,7 @@ val initial_state : string -> t
 
 (** [world_name st] gives the name of the world associated with [st] *)
 val world_name : t -> string
+
 (** [update_rsc u_rsc st] updates the resource list in [st] with the
     resource type and amount associated with [u_rsc].
     Creates new resource if [u_rsc] not found. 

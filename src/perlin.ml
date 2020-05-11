@@ -1,4 +1,4 @@
-(* TODO: Based on https://flafla2.github.io/2014/08/09/perlinnoise.html *)
+(* SOURCE: Based on https://flafla2.github.io/2014/08/09/perlinnoise.html *)
 
 (**[lerp a b x] is linear interpolation. *)
 let lerp a b x = a +. x*.(b-.a)
