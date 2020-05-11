@@ -1,5 +1,6 @@
-(** Type for the state of the game. *)
-type game = GameState.t
+(**
+    Input handler for Camlished
+ *)
 
 (** Type of an building placement state. *)
 type placing_state = PickLocation | AssignWorkers of int
@@ -51,4 +52,4 @@ val controls_text : t -> string
 
 (**[receive_command c t gs] is [(t',gs')] where [t'] and [gs'] are
    [t] and [gs] after receiving [c].*)
-val receive_command : command -> t -> game -> (t*game)
+val receive_command : command -> t -> GameState.t -> (t * GameState.t)

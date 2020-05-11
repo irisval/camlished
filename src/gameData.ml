@@ -75,7 +75,6 @@ let string_of_tile_type = function
   | Mountain -> "mountain"
   | Water -> "water"
   | Forest -> "forest"
-  | _ -> failwith "Invalid string to tile type conversion"
 
 let placement_rule_of_string = function
   | "on" -> On
@@ -158,6 +157,9 @@ let from_json j = try game_data j
 (* ====== Block: Gamedata properties ====== *)
 let building_types dt =
   List.map (fun b -> b.name) dt.building_properties
+
+let buildable_building_types dt =
+  building_types dt |> List.filter (fun a -> a <> "tent")
 
 let resource_types dt =
   dt.resource_types

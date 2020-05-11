@@ -1,5 +1,5 @@
 (**
-    Data of the game
+    Configuration data for the Camlished game engine.
 *)
 
 type t
@@ -85,6 +85,10 @@ val placement_rule_of_string : string -> placement_rule_type
 
 (** [building_types dt] is the list of building types in [dt] *)
 val building_types : t -> building_type list
+
+(** [buildable_building_types dt] is the list of building types that can be built 
+    in [dt] *)
+val buildable_building_types : t -> building_type list
 
 (** [resource_types dt] is the list of resource types in [d] *)
 val resource_types : t -> resource_type list

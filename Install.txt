@@ -1,3 +1,6 @@
 - If dune isn't installed on your system then run "$ opam install dune"
-- "$ make" the first time
-- "$ make exec" to run
+- "make" to build
+- "make exec" to launch game
+- "make test" to run tests
+- In order to generate documentation, odoc must be installed. If not installed
+  on your system, run "$ opam install odoc" before "make docs" to generate docs

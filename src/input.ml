@@ -259,7 +259,7 @@ let receive_placing_location c btype pos t _ gs =
   } in (t',gs)
 
 let receive_picking c n t _ gs =
-  let types = gs |> get_game_data |> building_types in
+  let types = gs |> get_game_data |> buildable_building_types in
   let n' = wrap
       (List.length types) 
       (match c with
@@ -348,7 +348,7 @@ let receive_command c t gs =
   begin match input.act with
     | Inspecting pos -> msg_r := get_inspect_msg pos gs
     | BuildingPicker n ->
-      let types = gs |> get_game_data |> building_types in
+      let types = gs |> get_game_data |> buildable_building_types in
       msg_r := get_building_pick_msg (List.nth types n) gs
     | Placing (PickLocation, btype,_) ->
       msg_r := get_building_place_msg btype gs

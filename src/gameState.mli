@@ -1,5 +1,5 @@
 (**
-    The state of a game
+    The state of a game of Camlished
  *)
 
 (** The type representing coordinates *)

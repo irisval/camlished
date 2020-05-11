@@ -7,7 +7,7 @@ exception IllegalWorkerAssignment
 exception IllegalResourceType
 exception IllegalResourceCollection
 
-let data_file = "data/sampleGameData.json"
+let data_file = "data/camlishedGameData.json"
 let data_file_testing = "data/sampleGameData.json"
 
 (* ====== Block: Define types ====== *)
@@ -110,10 +110,10 @@ let from_json_testing j =
     in [rsc_lst] *)
 let resources_to_json (rsc_lst: resource list) : string = 
   let convert = function
-    | {id=i; amount=a} -> String.concat ""
-                            ["{\"name\":\""; i; "\", \"amount\":";
-                             (a |> string_of_int);"}"]
-    | _ -> failwith "Malformed State Data." in 
+    | {id=i; amount=a} -> 
+      String.concat ""
+        ["{\"name\":\""; i; "\", \"amount\":"; (a |> string_of_int);"}"]
+  in 
   let strs : string list = List.map convert rsc_lst in 
   String.concat "," strs
 
@@ -134,7 +134,7 @@ let buildings_to_json (bg_lst : building list) : string =
                         (snd c |> string_of_int); ", \"workers\": ["; 
                         (people_to_json w); "], \"residents\": ["; 
                         (people_to_json r); "]}"]
-    | _ -> failwith "Malformed State Data." in 
+  in 
   let strs : string list = List.map convert bg_lst in 
   String.concat "," strs
 
@@ -145,16 +145,16 @@ let tiles_to_json (tile_lst : tile list) : string =
     | {name=n; coordinates=c} -> 
       String.concat "" ["{\"tile type\": \""; (GameData.string_of_tile_type n); 
                         "\", \"x coordinate\": "; (fst c |> string_of_int);
-                       ", \"y coordinate\": "; 
+                        ", \"y coordinate\": "; 
                         (snd c |> string_of_int); "}"]
-    | _ -> failwith "Malformed State Data." in 
+  in 
   let strs : string list = List.map convert tile_lst in 
   String.concat "," strs
 
 let save (st:t) = 
   match st with 
   | {world_name=w;
-    turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
+     turn_id=t; resources=rscs; buildings=bgs; tiles=tiles;_} -> 
     let n_str = "\"world name\": \"" ^ w ^ "\"" in
     let t_str =
       "\"turn id\": " ^ (t |> string_of_int) in 
@@ -165,7 +165,7 @@ let save (st:t) =
     let ti_str = String.concat "" ["\"tiles\":["; tiles_to_json tiles; "]"] in
     let body = String.concat "," [n_str; t_str; r_str; b_str; ti_str] in 
     let oc = open_out ("saves/" ^  (Str.global_replace (Str.regexp " ") "" w)
-                      ^ ".json") in    
+                       ^ ".json") in    
     fprintf oc "%s\n" ( String.concat "" ["{"; body; "}"] );
     close_out oc
 
@@ -324,8 +324,8 @@ let update_rsc (u_rsc : resource) st : t =
   let rec update (rsc_lst:resource list) (acc:resource list)  = 
     match rsc_lst with 
     | r::t -> if r.id = u_rsc'.id 
-              then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
-              else update t (r::acc)
+      then {id=r.id; amount = r.amount + u_rsc'.amount}::t@acc
+      else update t (r::acc)
     | [] -> {id=u_rsc'.id; amount = u_rsc'.amount}::acc in 
   {st with resources = update st.resources []}
 
@@ -595,9 +595,9 @@ let get_bounds st = GameData.get_bounds st.game_data
 
 let get_test_building =
   {building_type= "tent";
-    coordinates=(5,6);
-    workers=[];
-    residents=["john doe"; "jane doe"]}
+   coordinates=(5,6);
+   workers=[];
+   residents=["john doe"; "jane doe"]}
 
 let get_test_tile = GameData.Water
 

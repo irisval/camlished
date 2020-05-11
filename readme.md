@@ -1,7 +1,16 @@
-# camlished
+# Welcome to Camlished!
+
+
+![Start Screen](images/example1.png)
+![Lost Game](images/example2.png)
+
+
+#Installation:
+```
 $ opam install dune  
 $ make  
 $ make exec  
+```
 
 Controls:
 * w -> Up

@@ -1,6 +1,3 @@
-type input = Input.t
-type game = GameState.t
-
 open GameState
 open GameData
 open ANSITerminal
@@ -23,8 +20,8 @@ let char_of_building = function
 
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
    [s] is its style features.*)
-let char_of_tile tile gs =
-  let season = GameState.season gs in
+let char_of_tile tile (gs:GameState.t) =
+  let season = season gs in
   let on_grass = match season with 
     | Winter -> on_white
     | Fall -> on_yellow
@@ -41,7 +38,7 @@ let char_of_tile tile gs =
   | Forest -> ([tree_color;on_grass],'l')
 
 
-let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs = 
+let input_map_overlay (current_style,current) (x,y) (input:Input.t) (gs:GameState.t) = 
   match input.act with
   | Placing (PickLocation,t,(xp,yp)) ->
     begin match (xp = x,yp = y) with
@@ -65,11 +62,11 @@ let input_map_overlay (current_style,current) (x,y) (input:Input.t) gs =
 
 (**[char_at pos gs] is [(s,ch)] where [ch] is the char representing the
    tile at [pos] in [gs], [s] is its style features.*)
-let char_at pos input gs =
-  let base = match GameState.get_building_type_at pos gs
+let char_at pos input (gs:GameState.t) =
+  let base = match get_building_type_at pos gs
     with
     | Some b -> char_of_building b
-    | None -> char_of_tile (GameState.tile_rep_at pos gs) gs
+    | None -> char_of_tile (tile_rep_at pos gs) gs
   in
   let over = input_map_overlay base pos input gs in
   match over with 
@@ -98,7 +95,7 @@ let add_border arr width =
 
 (**[text_map input gs] gives the text representation of the map in [gs] 
    while in input state [input].*)
-let text_map input gs =
+let text_map input (gs:GameState.t) = 
   let bounds = GameState.get_bounds gs in
   let width = fst bounds in
   let height = snd bounds in
@@ -167,7 +164,6 @@ let add_text x y styletext arr =
   Array.set arr y linetxt';
   arr
 
-
 (**[resource_label (name,value)] gives the rendered label for a resource named
    [name] with quantity [value].*)
 let resource_label (name,value) = 
@@ -183,14 +179,17 @@ let rec add_resources x (line:int) r arr =
     let line' = line + 2 in
     add_resources x line' k arr
 
+let rsc_compare r1 r2 =
+  compare (fst r1) (fst r2)
+
 let add_side_info x y gs arr =
-  let resources = (get_user_resources gs) in
+  let resources = List.sort rsc_compare (get_user_resources gs) in
   let arr = extend ((List.length resources * 2) + y) [] arr in
-  let pop = GameState.population gs in
-  let max_pop = GameState.max_population gs in
-  let unassigned = GameState.unassigned_workers gs |> List.length in
+  let pop = population gs in
+  let max_pop = max_population gs in
+  let unassigned = unassigned_workers gs |> List.length in
   let pop_text =
-    "population: " ^ (string_of_int pop) ^"/"^(string_of_int max_pop) in
+    "population: " ^ (string_of_int pop) ^ "/" ^(string_of_int max_pop) in
   let unassigned_text =
     "unassigned workers: " ^ (string_of_int unassigned) in
   add_text x y (style_string [magenta;Bold] pop_text) arr
@@ -201,7 +200,7 @@ let add_side_info x y gs arr =
 let add_message y style msg arr = add_text 0 y (msg |> style_string style) arr
 
 let add_building_picker n y gs arr =
-  let types = gs |> GameState.get_game_data |> GameData.building_types in
+  let types = gs |> get_game_data |> buildable_building_types in
   let selected = List.nth types n in
   add_text 0 y
     (types
@@ -229,23 +228,23 @@ let add_worker_setter act y amt arr =
 
 let add_top_info x y width gs arr = 
   let add_turn arr = 
-    let s = "Turn: "^(GameState.turns gs |> string_of_int) in
+    let s = "Turn: "^(turns gs |> string_of_int) in
     add_text x y (style_string [yellow] s) arr
   in
   let add_yr_season arr =
     let s = 
-      (match GameState.season gs with
+      (match season gs with
        | Summer -> "Summer"
        | Spring -> "Spring"
        | Fall -> "Fall"
        | Winter -> "Winter")
-      ^" "^(GameState.year gs + 2020 |> string_of_int)
+      ^" "^(year gs + 2020 |> string_of_int)
     in add_text (x + width - (String.length s)) y (style_string [yellow] s) arr
   in
   arr|> add_turn|> add_yr_season
 
-let add_title left right y gs =
-  let world_name = GameState.world_name gs in
+let add_title left right y (gs:GameState.t) =
+  let world_name = world_name gs in
   let x = (left + right /2) - (String.length world_name / 2) in
   add_text x y (style_string [Bold] world_name)
 
@@ -266,7 +265,7 @@ let print_2d o =
     (Array.to_list o)
 
 
-let draw_output input gs = 
+let draw_output input (gs:GameState.t) = 
   let (width,height) = GameState.get_bounds gs in
   let output = ref (text_map input gs) in
   let map_bottom = height + 3 in let map_right = width + 2 in
@@ -278,7 +277,7 @@ let draw_output input gs =
     |> add_top_info 0 0 width gs
     |> add_message (map_bottom) [] input.msg
     |> add_message (map_bottom+4) []
-      (String.concat "\n" (GameState.read_log ()))
+      (String.concat "\n" (read_log ()))
     |> (fun o -> match input.act with
         | BuildingPicker n -> add_building_picker n (map_bottom+1) gs o
         | AdjustWorkers (_,_, amt)
@@ -287,15 +286,15 @@ let draw_output input gs =
         | _ -> o );
   !output
 
-let draw (input:Input.t) gs = 
+let draw (input:Input.t) (gs:GameState.t) = 
   full_clear ();
   print_2d (draw_output input gs)
 
 
-let you_died input gs =
+let you_died input (gs:GameState.t) =
   let text1 = "Game over! Everyone died :(" in
   let text2 = "You survived "
-              ^ (GameState.turns gs |> string_of_int) ^ " turns."in
+              ^ (turns gs |> string_of_int) ^ " turns."in
   let (width,height) = GameState.get_bounds gs in
   let output = ref (draw_output input gs) in
   let map_top = 0 in let map_left = 0 in
