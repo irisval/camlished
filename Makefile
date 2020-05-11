@@ -29,6 +29,10 @@ test:
 clean:
 	$(DUNE) clean
 
+zip:
+	zip camlished.zip data/* images/* saves/* src/* dune-project INSTALL.txt Makefile readme.md
+
+
 format:
 	$(DUNE) build --auto-promote @fmt
 	opam lint
