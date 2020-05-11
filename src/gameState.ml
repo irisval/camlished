@@ -207,7 +207,8 @@ let initial_state (name:string) =
                }) in
   let t1 = get_random game_data in 
   let t2 = get_random game_data in 
-  {world_name=name; turn_id=0; resources= [{id="food"; amount=10}]; 
+  {world_name=name; turn_id=0;
+  resources= [{id="food"; amount=50}; {id="wood"; amount=50}]; 
    buildings= initial_tents t1 t2;
    tiles=set_grass tl [t1; t2]; game_data = game_data}
 
@@ -285,7 +286,7 @@ let get_rsc_amt rt st : int =
 let meets_rsc_reqs bt st = 
   let req_lst = GameData.rsc_requirements bt st.game_data in
   let under = List.filter (fun (r:requirement) -> 
-      (get_rsc_amt r.resource st) <= r.amount) req_lst in 
+      (get_rsc_amt r.resource st) < r.amount) req_lst in 
   List.length under = 0
 
 let meets_placement_reqs bt coor st =
@@ -468,7 +469,7 @@ let con_gen_rsc_amt (b:building) st =
   List.fold_left (fun a g ->
       if (get_rsc_amt g.input_resource st) >= g.input_amount &&
          sufficient_workers b st then
-        let input_req = {id=g.input_resource; amount=g.input_amount * -1} in 
+        let input_req = {id=g.input_resource; amount=g.input_amount} in 
         let new_amt = worker_rsc_output b g.output_amount st in 
         let output_req = {id=g.output_resource; amount= new_amt}  in 
         (input_req, output_req)::a

@@ -9,10 +9,10 @@
   ],
   "width": 50,
   "height": 20,
-  "birth rate": 0.02,
-  "death rate": 0.01,
-  "death rate starving": 0.1, 
-  "death rate winter": 0.1,
+  "birth rate": 0.010,
+  "death rate": 0.005,
+  "death rate starving": 0.08,
+  "death rate winter": 0.035,
   "building properties": [
     {
       "name": "tent",
@@ -36,7 +36,7 @@
       "requirements": [
         {
           "resource": "wood",
-          "amount": 5
+          "amount": 40
         }
       ],
       "placement rule": [],
@@ -48,17 +48,17 @@
     {
       "name": "log cabin",
       "warmth": 0.7,
-      "max residents": 6,
-      "max workers": 3,
-      "min req workers" : 2,
+      "max residents": 5,
+      "max workers": 0,
+      "min req workers" : 0,
       "requirements": [
         {
           "resource": "wood",
-          "amount": 15
+          "amount": 60
         },
         {
           "resource": "planks",
-          "amount": 10
+          "amount": 30
         }
       ],
       "placement rule": [],
@@ -70,13 +70,21 @@
     {
       "name": "castle",
       "warmth": 1.0,
-      "max residents": 30,
-      "max workers": 20,
-      "min req workers" : 10,
+      "max residents": 10,
+      "max workers": 0,
+      "min req workers" : 0,
       "requirements": [
         {
           "resource": "stone",
-          "amount": 100
+          "amount": 250
+        },
+        {
+          "resource": "wood",
+          "amount": 200
+        },
+        {
+          "resource": "metal",
+          "amount": 50
         }
       ],
       "placement rule": [],
@@ -90,7 +98,7 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 7,
-      "min req workers" : 4,
+      "min req workers" : 1,
       "requirements": [
         {
           "resource": "wood",
@@ -101,12 +109,12 @@
         "type": "on",
         "tile": "mountain"
       }],
-      "max rsc output": 18,
+      "max rsc output": 4,
       "consumption generation": [],
       "active generation": [
         {
           "resource": "stone",
-          "output": 10
+          "output": 1
         }
       ],
       "storage": []
@@ -117,17 +125,27 @@
       "max residents": 0,
       "max workers": 8,
       "min req workers" : 3,
-      "requirements": [],
+      "requirements": [
+        {
+          "resource": "wood",
+          "amount": 50
+        },
+        {
+          "resource": "stone",
+          "amount": 25
+        }
+
+      ],
       "placement rule": [{
         "type": "on",
         "tile": "mountain"
       }],
-      "max rsc output": 21,
+      "max rsc output": 5,
       "consumption generation": [],
       "active generation": [
         {
           "resource": "ore",
-          "output": 10
+          "output": 1
         }
       ],
       "storage": []
@@ -138,17 +156,22 @@
       "max residents": 0,
       "max workers": 7,
       "min req workers" : 2,
-      "requirements": [],
+      "requirements": [
+        {
+          "resource": "stone",
+          "amount": 25
+        }
+      ],
       "placement rule": [{
         "type": "on",
         "tile": "forest"
       }],
-      "max rsc output": 14,
+      "max rsc output": 3,
       "consumption generation": [],
       "active generation": [
         {
           "resource": "wood",
-          "output": 6
+          "output": 1
         }
       ],
       "storage": []
@@ -176,7 +199,7 @@
           "input resource": "ore",
           "input amount": 5,
           "output resource": "metal",
-          "output amount": 2
+          "output amount": 1
         }
       ],
       "active generation": [],
@@ -191,25 +214,25 @@
       "requirements": [
         {
           "resource": "metal",
-          "amount": 5
+          "amount": 10
         },
         {
           "resource": "wood",
-          "amount": 5
+          "amount": 50
         },
         {
           "resource": "stone",
-          "amount": 5
+          "amount": 35
         }
       ],
       "placement rule": [],
-      "max rsc output": 10,
+      "max rsc output": 5,
       "consumption generation": [
         {
           "input resource": "wood",
-          "input amount": 1,
+          "input amount": 8,
           "output resource": "planks",
-          "output amount": 5
+          "output amount": 2
         }
       ],
       "active generation": [],
@@ -224,23 +247,23 @@
       "requirements": [
         {
           "resource": "metal",
-          "amount": 5
+          "amount": 25
         },
-         {
+        {
           "resource": "planks",
-          "amount": 10
+          "amount": 15
         }
       ],
       "placement rule": [{
         "type": "next",
         "tile": "water"
       }],
-      "max rsc output": 9,
+      "max rsc output": 13,
       "consumption generation": [],
       "active generation": [
         {
           "resource": "food",
-          "output": 5
+          "output": 6
         }
       ],
       "storage": []
@@ -248,10 +271,15 @@
     {
       "name": "farm",
       "warmth": 0.2,
-      "max residents": 3,
-      "max workers": 7,
+      "max residents": 0,
+      "max workers": 4,
       "min req workers" : 2,
-      "requirements": [],
+      "requirements": [
+        {
+          "resource": "food",
+          "amount": 10
+        }
+      ],
       "placement rule": [{
         "type": "on",
         "tile": "grass"
@@ -261,7 +289,7 @@
       "active generation": [
         {
           "resource": "food",
-          "output": 4
+          "output": 2
         }
       ],
       "storage": []

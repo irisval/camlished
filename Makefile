@@ -33,21 +33,3 @@ format:
 	$(DUNE) build --auto-promote @fmt
 	opam lint
 	git ls-files '**/*.[ch]' | xargs -n1 indent -nut -i8
-
-# SRC=src/
-# MODULES=src/gameState src/gameData src/input src/main src/mapGenerator src/names src/perlin src/renderer
-# MLS=$(MODULES:=.ml)
-# MLIS=$(MODULES:=.mli)
-
-# docs: docs-public docs-private
-
-# docs-public: all
-# 	mkdir -p doc.public
-# 	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
-# 		-html -stars -d doc.public $(MLIS)
-
-# docs-private: all
-# 	mkdir -p doc.private
-# 	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
-# 		-html -stars -d doc.private \
-# 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)

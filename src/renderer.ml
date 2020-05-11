@@ -15,7 +15,7 @@ let char_of_building = function
   | "tree farm" -> ([white;on_black],'n')
   | "forge" -> ([white;on_black],'l')
   | "fishing docks" -> ([white;on_black],'=')
-  | "farm" -> ([white;on_yellow],' ')
+  | "farm" -> ([black;on_yellow],'+')
   | _ -> ([black;on_white],'?')
 
 (**[char_of_tile t] is [(s,ch)] where [ch] is the char representing [t],
@@ -38,7 +38,13 @@ let char_of_tile tile (gs:GameState.t) =
   | Forest -> ([tree_color;on_grass],'l')
 
 
-let input_map_overlay (current_style,current) (x,y) (input:Input.t) (gs:GameState.t) = 
+let input_map_overlay
+  (current_style,current) (x,y) (input:Input.t)(gs:GameState.t) = 
+  let season = season gs in
+  let cross_color = match season with
+  | Winter -> black
+  | Fall | Spring | Summer -> white
+  in
   match input.act with
   | Placing (PickLocation,t,(xp,yp)) ->
     begin match (xp = x,yp = y) with
@@ -47,15 +53,15 @@ let input_map_overlay (current_style,current) (x,y) (input:Input.t) (gs:GameStat
         if can_place_building_at t (xp,yp) gs then
           Some (s,c)
         else Some (s@[on_red],c)
-      | (true,false) -> Some (current_style@[white], '|')
-      | (false,true) -> Some (current_style@[white], '-')
+      | (true,false) -> Some (current_style@[cross_color], '|')
+      | (false,true) -> Some (current_style@[cross_color], '-')
       | _ -> None
     end
   | Inspecting (xp,yp) ->
     begin match (xp = x,yp = y) with
       | (true,true) -> Some (current_style,current)
-      | (true,false) -> Some (current_style@[white], '|')
-      | (false,true) -> Some (current_style@[white], '-')
+      | (true,false) -> Some (current_style@[cross_color], '|')
+      | (false,true) -> Some (current_style@[cross_color], '-')
       | _ -> None
     end
   | _ -> None
@@ -259,8 +265,10 @@ let full_clear () =
    separate line.*)
 let print_2d o =
   List.iter
-    (fun line -> List.iter
-        (fun (s,c) -> print_string s (c |> String.make 1 ) )
+    (fun line ->
+    print_string [] "  ";
+    List.iter
+      (fun (s,c) -> print_string s (c |> String.make 1 ) )
         line; print_newline ())
     (Array.to_list o)
 

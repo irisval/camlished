@@ -1,8 +1,6 @@
 open GameData
 open GameState
 
-type game = t
-
 type placing_state = PickLocation | AssignWorkers of int
 type adjust_workers_state = Assign | Unassign
 
@@ -106,11 +104,11 @@ let building_gen_text b gs e =
   let con_gen = con_gen_rsc_amt b gs in
   let write_rsc (r:resource) = (string_of_int r.amount)^" "^r.id in
   let active_gen_text = List.map write_rsc active_gen |> comma_fold_opt in
-  let write_con_gen (p,c) = (write_rsc p)^ " for "^(write_rsc c) in
+  let write_con_gen (c,p) = (write_rsc p)^ " for "^(write_rsc c) in
   let con_gen_text = List.map write_con_gen con_gen |> comma_fold_opt in
   match active_gen_text, con_gen_text with
-  | Some p, Some c -> e^"producing "^p^", "^c^" per turn."
-  | Some s, None| None, Some s -> e^"producing "^s^" per turn."
+  | Some p, Some c -> e^" producing "^p^", "^c^" per turn."
+  | Some s, None| None, Some s -> e^" producing "^s^" per turn."
   | None, None -> e
 
 
@@ -120,18 +118,20 @@ let building_msg (b:building) gs =
   let current_workers = List.length b.workers in
   let max_residents = max_residents b.building_type gd in
   let current_residents = List.length b.residents in
-  b.building_type^": "
+  let min_workers = min_req_workers b.building_type gd in
+  b.building_type^":"
   |> building_gen_text b gs
-  |> (fun e -> 
-      if max_workers > 0 then
-        e^" Workers: "
-        ^string_of_int current_workers^"/"^string_of_int max_workers^"."
-      else e)
-  |> (fun e -> 
-      if max_residents > 0 then
-        e^" Residents: "
-        ^string_of_int current_residents^"/"^string_of_int max_residents^"."
-      else e) 
+  |> (fun e -> if max_workers > 0 then
+         e^" Workers: "
+         ^string_of_int current_workers^"/"^string_of_int max_workers^"."
+       else e)
+  |> (fun e ->  if max_residents > 0 then
+         e^" Residents: "
+         ^string_of_int current_residents^"/"^string_of_int max_residents^"."
+       else e) 
+  |> (fun e -> if min_workers > 0 then
+         e^" Min workers to produce: "^string_of_int min_workers^"."
+       else e^".")
 
 let get_inspect_msg pos gs =
   match get_building_at pos gs with
@@ -147,7 +147,6 @@ let get_inspect_msg pos gs =
 let get_building_pick_msg btype gs =
   let gd = get_game_data gs in
   let placement_costs = rsc_requirements btype gd in
-  let min_workers = min_req_workers btype gd in
   let write (b:requirement) =
     (string_of_int b.amount)^" "^b.resource in
   "Requires: "
@@ -155,13 +154,6 @@ let get_building_pick_msg btype gs =
   | [] -> "Nothing"
   | h::k ->
     List.fold_left (fun acc b -> acc ^ ", " ^ write b) (write h) k ^"."
-    (* |> TODO: show placement requirement? *)
-    |> (fun e -> 
-        if min_workers > 0 then
-          e^" Minimum workers: "
-          ^string_of_int min_workers^"."
-        else e^".")
-    |> (fun e -> e)
 
 
 let get_building_place_msg btype gs =
