@@ -14,7 +14,7 @@ let char_of_building = function
   | "mine" -> ([white;on_black],'_')
   | "tree farm" -> ([white;on_black],'n')
   | "forge" -> ([white;on_black],'l')
-  | "fishing docks" -> ([white;on_black],'=')
+  | "fishing dock" -> ([white;on_black],'=')
   | "farm" -> ([black;on_yellow],'+')
   | _ -> ([black;on_white],'?')
 
