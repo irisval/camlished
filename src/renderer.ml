@@ -39,11 +39,11 @@ let char_of_tile tile (gs:GameState.t) =
 
 
 let input_map_overlay
-  (current_style,current) (x,y) (input:Input.t)(gs:GameState.t) = 
+    (current_style,current) (x,y) (input:Input.t)(gs:GameState.t) = 
   let season = season gs in
   let cross_color = match season with
-  | Winter -> black
-  | Fall | Spring | Summer -> white
+    | Winter | Fall -> black
+    | Spring | Summer -> white
   in
   match input.act with
   | Placing (PickLocation,t,(xp,yp)) ->
@@ -266,10 +266,10 @@ let full_clear () =
 let print_2d o =
   List.iter
     (fun line ->
-    print_string [] "  ";
-    List.iter
-      (fun (s,c) -> print_string s (c |> String.make 1 ) )
-        line; print_newline ())
+       print_string [] "  ";
+       List.iter
+         (fun (s,c) -> print_string s (c |> String.make 1 ) )
+         line; print_newline ())
     (Array.to_list o)
 
 

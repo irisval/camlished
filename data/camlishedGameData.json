@@ -9,17 +9,17 @@
   ],
   "width": 50,
   "height": 20,
-  "birth rate": 0.010,
+  "birth rate": 0.018,
   "death rate": 0.005,
   "death rate starving": 0.08,
-  "death rate winter": 0.035,
+  "death rate winter": 0.022,
   "building properties": [
     {
       "name": "tent",
       "warmth": 0.0,
-      "max residents": 2,
+      "max residents": 3,
       "max workers": 0,
-      "min req workers" : 0,
+      "min req workers": 0,
       "requirements": [],
       "placement rule": [],
       "max rsc output": 0,
@@ -32,7 +32,7 @@
       "warmth": 0.3,
       "max residents": 3,
       "max workers": 0,
-      "min req workers" : 0,
+      "min req workers": 0,
       "requirements": [
         {
           "resource": "wood",
@@ -50,7 +50,7 @@
       "warmth": 0.7,
       "max residents": 5,
       "max workers": 0,
-      "min req workers" : 0,
+      "min req workers": 0,
       "requirements": [
         {
           "resource": "wood",
@@ -72,7 +72,7 @@
       "warmth": 1.0,
       "max residents": 10,
       "max workers": 0,
-      "min req workers" : 0,
+      "min req workers": 0,
       "requirements": [
         {
           "resource": "stone",
@@ -98,17 +98,19 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 7,
-      "min req workers" : 1,
+      "min req workers": 1,
       "requirements": [
         {
           "resource": "wood",
           "amount": 25
         }
       ],
-      "placement rule": [{
-        "type": "on",
-        "tile": "mountain"
-      }],
+      "placement rule": [
+        {
+          "type": "on",
+          "tile": "mountain"
+        }
+      ],
       "max rsc output": 4,
       "consumption generation": [],
       "active generation": [
@@ -124,7 +126,7 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 8,
-      "min req workers" : 3,
+      "min req workers": 3,
       "requirements": [
         {
           "resource": "wood",
@@ -134,12 +136,13 @@
           "resource": "stone",
           "amount": 25
         }
-
       ],
-      "placement rule": [{
-        "type": "on",
-        "tile": "mountain"
-      }],
+      "placement rule": [
+        {
+          "type": "on",
+          "tile": "mountain"
+        }
+      ],
       "max rsc output": 5,
       "consumption generation": [],
       "active generation": [
@@ -155,17 +158,19 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 7,
-      "min req workers" : 2,
+      "min req workers": 2,
       "requirements": [
         {
           "resource": "stone",
           "amount": 25
         }
       ],
-      "placement rule": [{
-        "type": "on",
-        "tile": "forest"
-      }],
+      "placement rule": [
+        {
+          "type": "on",
+          "tile": "forest"
+        }
+      ],
       "max rsc output": 3,
       "consumption generation": [],
       "active generation": [
@@ -181,15 +186,15 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 6,
-      "min req workers" : 2,
+      "min req workers": 2,
       "requirements": [
         {
           "resource": "stone",
-          "amount": 10
+          "amount": 75
         },
         {
           "resource": "wood",
-          "amount": 10
+          "amount": 50
         }
       ],
       "placement rule": [],
@@ -210,7 +215,7 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 7,
-      "min req workers" : 2,
+      "min req workers": 2,
       "requirements": [
         {
           "resource": "metal",
@@ -243,7 +248,7 @@
       "warmth": 0.0,
       "max residents": 0,
       "max workers": 3,
-      "min req workers" : 1,
+      "min req workers": 1,
       "requirements": [
         {
           "resource": "metal",
@@ -254,10 +259,12 @@
           "amount": 15
         }
       ],
-      "placement rule": [{
-        "type": "next",
-        "tile": "water"
-      }],
+      "placement rule": [
+        {
+          "type": "next",
+          "tile": "water"
+        }
+      ],
       "max rsc output": 13,
       "consumption generation": [],
       "active generation": [
@@ -273,17 +280,19 @@
       "warmth": 0.2,
       "max residents": 0,
       "max workers": 4,
-      "min req workers" : 2,
+      "min req workers": 2,
       "requirements": [
         {
           "resource": "food",
           "amount": 10
         }
       ],
-      "placement rule": [{
-        "type": "on",
-        "tile": "grass"
-      }],
+      "placement rule": [
+        {
+          "type": "on",
+          "tile": "grass"
+        }
+      ],
       "max rsc output": 8,
       "consumption generation": [],
       "active generation": [
