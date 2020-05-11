@@ -7,7 +7,7 @@ type char_config = float * (v_or_c list)
 type config_list = char_config list
 
 (* config based on Krzmrgystan General Hospital *)
-let patient = [
+let patient : config_list = [
   (1.0, [Consonant]);
   (1.0, [Vowel]);
   (0.5, [Consonant]);
