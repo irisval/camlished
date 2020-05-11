@@ -1,11 +1,11 @@
 # Welcome to Camlished!
 
 
-![Start Screen](images/example1.png)
-![Lost Game](images/example2.png)
+![Start Screen](images/example1.png | width=100)
+![Lost Game](images/example2.png | width=100)
 
 
-#Installation:
+# Installation:
 ```
 $ opam install dune  
 $ make  
